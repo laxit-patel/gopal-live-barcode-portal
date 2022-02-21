@@ -9,6 +9,7 @@ use App\Models\ProductMaster;
 use App\Models\RawDispatchMaster;
 use App\Models\RawPackingMaster;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class PackingRawProduction extends Command
 {
@@ -43,13 +44,14 @@ class PackingRawProduction extends Command
      */
     public function handle()
     {
-        $true = true;
-        while ($true) {
+        set_time_limit(0);
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Could not create socket\n");
+        while (true) {
             $ConfigData = Configuration::first('rawPacking');
             $rawPacking = $ConfigData->rawPacking;
             if ($rawPacking != 'Off' && !empty($rawPacking)) {
-                set_time_limit(0);
-                $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Could not create socket\n");
+                
+                
 
                 $machineData = BarcodeMachineMaster::get();
                 foreach ($machineData as $machine) {
@@ -62,6 +64,7 @@ class PackingRawProduction extends Command
                     $result = socket_connect($socket, $host, $port) or die("Could not bind to socket\n");
                     $input = socket_read($socket, 1024) or die("Could not read input\n");
                     $barcode = trim($input);
+                    //echo $barcode;exit;
                     if (!empty($barcode)) {
                         if ($machine->type == 'packing') {
                             $productData = ProductMaster::where('barcode', $barcode)->first('product_id');
@@ -86,6 +89,8 @@ class PackingRawProduction extends Command
                                 $data->save();
                             }
                         }
+                        //socket_close($socket);
+                        log::debug('socket closed');
                         $this->info('Updated on raw packing ' . $machine->type);
                     } else {
                         $this->info('empty barcode - ' . $machine->type);

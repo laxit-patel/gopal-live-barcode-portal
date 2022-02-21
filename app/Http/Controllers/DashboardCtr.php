@@ -38,30 +38,31 @@ class DashboardCtr extends Controller
                 ->where('raw_dispatch_masters.plant_id',  $plant_id)
                 ->where('raw_dispatch_masters.line_id',  $line_id)
                 ->groupBy('raw_dispatch_masters.barcode')
-                ->orderby('raw_dispatch_masters.raw_dispatch_id', 'ASC')
-                ->get(['product_masters.*',DB::raw('count(*) as countQty')]);
+                ->orderby( 'dt', 'DESC')
+                ->get(['product_masters.*',DB::raw('count(*) as countQty, MAX(raw_dispatch_masters.created_at) as dt')]);
 
 
             } elseif ($machineData->type == 'packing') {
+                DB::enableQueryLog();
+               $productData = RawPackingMaster::join('product_masters', 'raw_packing_masters.product_id','product_masters.product_id')
+                ->where('raw_packing_masters.plant_id',  $plant_id)
+                ->where('raw_packing_masters.line_id',  $line_id)
+                ->groupBy('raw_packing_masters.barcode')
+                ->orderby( 'dt', 'DESC')
+                ->get(['product_masters.*',DB::raw('count(*) as countQty, MAX(raw_packing_masters.created_at) as dt')]);
 
-               $productData = RawPackingMaster::join('product_masters', 'raw_packing_masters.product_id','=', 'product_masters.product_id')
-                    ->where('raw_packing_masters.plant_id',  $plant_id)
-                    ->where('raw_packing_masters.line_id',  $line_id)
-                    ->groupBy('raw_packing_masters.barcode')
-                    ->orderby('raw_packing_masters.raw_packing_id', 'ASC')
-                    ->get(['product_masters.*',DB::raw('count(*) as countQty')]);
             }
             if ($ajax) {
                 
                 $tr = '';
                 foreach ($productData as $key => $row) {
-                    $tr .= "<tr class='fs-2 fw-bold'>
+                    $tr .= "<tr class='fs-2 text-gray-700 fw-bold '>
                     <td class='text-center '>{$row['material_code']}</td>
                     <td>{$row['description']}</td>
                     <td>{$row['barcode']}</td>
-                    <td class='text-center'>Box</td>
-                    <td class='text-center'>{$row['countQty']}</td>
+                    <td class='text-center fw-boldest fs-2'>{$row['countQty']}</td>
                     </tr>";
+                    
                 }
                 return response()->json($tr);
             }

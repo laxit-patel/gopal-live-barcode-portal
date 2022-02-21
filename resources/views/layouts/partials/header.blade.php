@@ -22,9 +22,6 @@
                 <img alt="Logo" src="{{ asset('theme/assets/media/logos/favicon.png') }}" class="h-25px h-lg-30px d-none d-md-block" />
                 <img alt="Logo" src="{{ asset('theme/assets/media/logos/favicon.png') }}" class="h-25px d-block d-md-none" />
             </a>
-            @if(Route::currentRouteName()=='row.packing' && isset($display_choice) && !$display_choice)
-            <h1 class=" ms-5 text-gray-300" id='totalRecordAdded' >No. of Items : <span class="fs-2hx text-white">{{count($productData)?count($productData):0}}</span></h1>
-            @endif
             <!--end::Logo-->
         </div>
         <!--end::Brand-->
@@ -37,11 +34,10 @@
             @endif
             <a href="{{ route('logout') }}" class="btn btn-success border-0 px-3 px-lg-6">Logout</a>
             @else
-            <a href="{{ route('login') }}" class="btn btn-success border-0 px-3 px-lg-6">Login</a>
+            <a href="{{ route('login') }}" class="btn text-white btn-active-primary border-0 px-3 px-lg-6">Login</a>
             @endif
             @if(isset($display_choice) && !$display_choice )
-            <a class="btn btn-danger border-0 px-3 px-lg-6 ms-2"  onclick="openFullscreen()"><i class="fa fa-expand"></i></a>
-            <a href="{{ route('row.packing') }}" class="btn btn-danger border-0 px-3 px-lg-6 ms-2">Exit</a>
+            <a href="{{ route('row.packing') }}" class="btn text-white btn-active-danger border-0 px-3 px-lg-6 ms-2">Exit</a>
             @endif
         </div>
         <!--begin::Topbar-->

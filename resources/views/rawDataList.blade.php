@@ -19,6 +19,25 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
     <link href="{{ url('/theme') }}/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
     <link href="{{ url('/theme') }}/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <style>
+        
+        thead th {
+          position: sticky;
+          top: 0;
+        }
+        table {
+          border-collapse: collapse;        
+          width: 100%;
+        }
+        th,
+        td {
+          padding: 8px 15px;
+          border: 2px solid #529432;
+        }
+        th {
+          background: #ABDD93;
+        }
+      </style>
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -32,7 +51,7 @@
             @include('layouts.partials.header')
             <div class="wrapper d-flex flex-column flex-row-fluid w-100" style="padding-left: 0px;" id="kt_wrapper">
                 <!--begin::Content-->
-                <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+                <div class="content d-flex flex-column flex-column-fluid" style="padding: 0px;" id="kt_content">
                     <!--begin::Toolbar-->
                     @if($display_choice)
                     <div class="toolbar d-flex flex-stack mb-3 mb-lg-5" id="kt_toolbar">
@@ -70,74 +89,55 @@
                     @endif
                     <!--end::Toolbar-->
                     <!--begin::Post-->
-                    <div class="post d-flex flex-column-fluid" id="kt_post">
-                        <!--begin::Container-->
-                        <div id="kt_content_container" class="container-xxl">
-                            <!--begin::Row-->
-                            @if(!empty(Request::get('plant_id')) && !empty(Request::get('line_id')))
-                            <div id="" class="card">
-                                {{-- <div id="" class="card-header p-4"> --}}
-                                {{-- </div> --}}
-                                <div class="card-body ">
-                                    <table class="table font-weight-bolder align-middle table-sm table-row-dashed  " id="">
-                                        <!--begin::Table head-->
-                                        <thead>
-                                            <!--begin::Table row-->
-                                            <tr class="bg-light-primary fs-2 text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-                                                <th class="text-center">Product Code</th>
-                                                <th class="">Product Name</th>
-                                                <th class="">Barcode</th>
-                                                <th class="text-center">UOM</th>
-                                                <th class="text-center ">No of Package per Box</th>
-                                            </tr>
-                                            <!--end::Table row-->
-                                        </thead>
-                                        <!--end::Table head-->
-                                        <!--begin::Table body-->
-                                        <tbody class="" id="displayData">
-                                            @if(count($productData))
-                                            @foreach($productData as $k=>$product)
-                                            <tr class="fs-2 fw-bold">
-                                                <td class="text-center">{{$product->material_code}}</td>
-                                                <td class="">{{$product->description}}</td>
-                                                <td class="">{{$product->barcode}}</td>
-                                                <td class="text-center">Box</td>
-                                                <td class="text-center">{{$product->countQty}}</td>
-                                            </tr>
-                                            @endforeach
-                                            @else
-                                            <tr>
-                                                <td colspan="5" class="text-center">No data available in table</td>
-                                            </tr>
-                                            @endif
-                                        </tbody>
-                                        <tfoot>
-                                            <!--begin::Table row-->
-                                            <tr class="bg-light-primary fs-2 text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-                                                <th class="text-center">Product Code</th>
-                                                <th class="">Product Name</th>
-                                                <th class="">Barcode</th>
-                                                <th class="text-center">UOM</th>
-                                                <th class="text-center ">No of Package per Box</th>
-                                            </tr>
-                                            <!--end::Table row-->
-                                        </tfoot>
-                                        <!--end::Table body-->
-                                    </table>
-                                </div>
-                            </div>
-
+                    @if(!empty(Request::get('plant_id')) && !empty(Request::get('line_id')))
+                            <table class="table g-5 font-weight-bolder table-bordered rounded align-middle table-sm   " id="">
+                                <!--begin::Table head-->
+                                <thead>
+                                    <!--begin::Table row-->
+                                    <tr class="bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0">
+                                        <th class="text-center">Product Code</th>
+                                        <th class="">Product Name</th>
+                                        <th class="">Barcode</th>
+                                        <th class="text-center ">No. Of Boxes</th>
+                                    </tr>
+                                    <!--end::Table row-->
+                                </thead>
+                                <!--end::Table head-->
+                                <!--begin::Table body-->
+                                <tbody class="" id="displayData" style="min-height: auto">
+                                    @if(count($productData))
+                                    @foreach($productData as $k=>$product)
+                                    <tr class="fs-2 fw-bold text-gray-700">
+                                        <td class="text-center">{{$product->material_code}}</td>
+                                        <td class="">{{$product->description}}</td>
+                                        <td class="">{{$product->barcode}}</td>
+                                        <td class="text-center fw-boldest">{{$product->countQty}}</td>
+                                    </tr>
+                                    @endforeach
+                                    
+                                    @else
+                                    <tr>
+                                        <td colspan="5" class="text-center">No data available in table</td>
+                                    </tr>
+                                    @endif
+                                </tbody>
+                                <tfoot >
+                                    <!--begin::Table row-->
+                                    <tr class="bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0">
+                                        <th class="text-center">Product Code</th>
+                                        <th class="">Product Name</th>
+                                        <th class="">Barcode</th>
+                                        <th class="text-center ">No. Of Boxes</th>
+                                    </tr>
+                                    <!--end::Table row-->
+                                </tfoot>
+                                <!--end::Table body-->
+                            </table>
                             @endif
-                        </div>
-                        <!--end::Container-->
-                    </div>
                     <!--end::Post-->
                 </div>
                 <!--end::Content-->
 
-                <!--begin::Footer-->
-                @include('layouts.partials.footer')
-                <!--end::Footer-->
             </div>
             <!--end::Wrapper-->
         </div>
