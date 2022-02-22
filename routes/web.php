@@ -40,6 +40,7 @@ Route::get('/', function () {
     }
 });
 
+Route::get('/dazzle', [DashboardCtr::class, 'dazzle']);
 
 Route::get('/display-data', [DashboardCtr::class, 'listdata'])->name('row.packing');
 Route::get('/display-data/get/{ajax}/{no}', [DashboardCtr::class, 'listdata']);
