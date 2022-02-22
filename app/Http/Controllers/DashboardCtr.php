@@ -13,39 +13,18 @@ use App\Models\RawPackingMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-use Dazzle\Loop\Model\SelectLoop;
-use Dazzle\Loop\Loop;
-use Dazzle\Socket\Socket;
-use Dazzle\Socket\SocketInterface;
-use Dazzle\Socket\SocketListener;
-use Dazzle\Socket\
-
 class DashboardCtr extends Controller
 {
 
-    public function dazzle()
-    {
-        $loop = new Loop(new SelectLoop);
-        
-        $socket = new Socket('tcp://127.0.0.1:2080', $loop);
-        $socket->on('close', function() use($loop) {
-            printf("Server has closed the connection!\n");
-            $loop->stop();
-        });
-
-        $loop->addPeriodicTimer(1, function() use($socket) {
-            $socket->write('Hello World!');
-        });
-        dd('yo');
-    }
 
     public function dashboard()
     {
         return view('dashboard');
     }
 
-    public function listdata($ajax = 0, $no = 0, Request $request)
+    public function listdata( Request $request)
     {
+        $ajax = ($request->ajax) ? $request->ajax : 0; $no = ($request->no)?$request->no:0;
         $plant_id = $request->plant_id;
         $line_id = $request->line_id;
         $pageType = null;
@@ -87,6 +66,7 @@ class DashboardCtr extends Controller
                     </tr>";
                     
                 }
+                
                 return response()->json($tr);
             }
             $display_choice = false;
