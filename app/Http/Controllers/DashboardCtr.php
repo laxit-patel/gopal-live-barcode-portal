@@ -13,19 +13,18 @@ use App\Models\RawDispatchMaster;
 use App\Models\RawPackingMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\ProductMasterLineItems;
 
 class DashboardCtr extends Controller
 {
 
- 
     public function dashboard()
     {
         return view('dashboard');
     }
 
-    public function listdata($ajax = 0, $no = 0, Request $request)
+    public function listdata( Request $request)
     {
+        $ajax = ($request->ajax) ? $request->ajax : 0; $no = ($request->no)?$request->no:0;
         $plant_id = $request->plant_id;
         $line_id = $request->line_id;
         $pageType = null;
@@ -66,6 +65,7 @@ class DashboardCtr extends Controller
                     </tr>";
                     
                 }
+                
                 return response()->json($tr);
             }
             $display_choice = false;

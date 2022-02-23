@@ -44,8 +44,6 @@ class PackingRawProduction extends Command
      */
     public function handle()
     {
-        set_time_limit(0);
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Could not create socket\n");
         while (true) {
             $ConfigData = Configuration::first('rawPacking');
             $rawPacking = $ConfigData->rawPacking;
@@ -53,18 +51,22 @@ class PackingRawProduction extends Command
                 
                 
 
-                $machineData = BarcodeMachineMaster::get();
+                $machineData = BarcodeMachineMaster::get();//echo '<pre>';print_r($machineData);exit;
                 foreach ($machineData as $machine) {
+
+
                     $machine_id = $machine->machine_id;
                     $plant_id = $machine->plant_id;
                     $line_id = $machine->line_id;
                     $host = $machine->ip_address;
                     $port = $machine->port;
-
+                    //socket_close($socket);
+                    set_time_limit(0);
+                    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Could not create socket\n");
                     $result = socket_connect($socket, $host, $port) or die("Could not bind to socket\n");
-                    $input = socket_read($socket, 1024) or die("Could not read input\n");
+                    $input = socket_read($socket, 1024);
                     $barcode = trim($input);
-                    //echo $barcode;exit;
+                    
                     if (!empty($barcode)) {
                         if ($machine->type == 'packing') {
                             $productData = ProductMaster::where('barcode', $barcode)->first('product_id');
@@ -77,8 +79,10 @@ class PackingRawProduction extends Command
                                 $data->product_id = $productData->product_id;
                                 $data->save();
                             }
-                        } elseif ($machine->type == 'dispatch') {
-                            $dispatchData = DispatchMaster::where('barcode', $barcode)->where('plant_id', $plant_id)->where('line_id', $line_id)->first(['product_id']);
+                        } 
+                        if ($machine->type == 'dispatch') {
+
+                            $dispatchData = ProductMaster::where('barcode', $barcode)->first('product_id');
                             if (!empty($dispatchData)) {
                                 $data = new RawDispatchMaster;
                                 $data->machine_id = $machine_id;
@@ -95,6 +99,7 @@ class PackingRawProduction extends Command
                     } else {
                         $this->info('empty barcode - ' . $machine->type);
                     }
+                    //socket_close($socket);
                 }
             }
         }
