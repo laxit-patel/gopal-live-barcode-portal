@@ -15,8 +15,9 @@ class DispatchCtr extends Controller
     public function list()
     {
         $lineData = LineMaster::orderby('line_name')->get(['line_id', 'plant_id', 'line_name']);
-        $dispatchData = DispatchMaster::join('product_masters', 'product_masters.product_id', 'dispatch_masters.product_id')->where('line_id', '0')->get();
-        return view('dispatch.list', compact('dispatchData', 'lineData'));
+        $plantData = PlantMaster::all();
+        $dispatchData = DispatchMaster::join('order_masters', 'order_masters.so_po_no', 'dispatch_masters.so_po_no')->get();
+        return view('dispatch.list', compact('dispatchData', 'lineData','plantData'));
     }
 
     public function update(Request $request)
@@ -24,6 +25,21 @@ class DispatchCtr extends Controller
         foreach ($request->line_id as $dispatch_id => $line_id) {
             DispatchMaster::where('dispatch_id', $dispatch_id)->update(['line_id' => $line_id]);
         }
+        return redirect()->route('dispatch');
+    }
+
+    public function updateLine(Request $request)
+    {
+        $request->validate([
+            'dispatch_id' => 'required',
+            'plant_id' => 'required',
+            'line_id' => 'required'
+        ]);
+
+        DispatchMaster::where('dispatch_id', $request->dispatch_id)->update([
+            'line_id' => $request->line_id,
+            'plant_id' => $request->plant_id
+        ]);
         return redirect()->route('dispatch');
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BarcodeMachineMaster;
 use App\Models\DispatchMaster;
 use App\Models\LineMaster;
+use App\Models\OrderMaster;
 use App\Models\PackingProductionMaster;
 use App\Models\PlantMaster;
 use App\Models\ProductMaster;
@@ -12,33 +13,12 @@ use App\Models\RawDispatchMaster;
 use App\Models\RawPackingMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
-use Dazzle\Loop\Model\SelectLoop;
-use Dazzle\Loop\Loop;
-use Dazzle\Socket\Socket;
-use Dazzle\Socket\SocketInterface;
-use Dazzle\Socket\SocketListener;
-use Dazzle\Socket\
+use App\Models\ProductMasterLineItems;
 
 class DashboardCtr extends Controller
 {
 
-    public function dazzle()
-    {
-        $loop = new Loop(new SelectLoop);
-        
-        $socket = new Socket('tcp://127.0.0.1:2080', $loop);
-        $socket->on('close', function() use($loop) {
-            printf("Server has closed the connection!\n");
-            $loop->stop();
-        });
-
-        $loop->addPeriodicTimer(1, function() use($socket) {
-            $socket->write('Hello World!');
-        });
-        dd('yo');
-    }
-
+ 
     public function dashboard()
     {
         return view('dashboard');
@@ -63,7 +43,6 @@ class DashboardCtr extends Controller
                 ->groupBy('raw_dispatch_masters.barcode')
                 ->orderby( 'dt', 'DESC')
                 ->get(['product_masters.*',DB::raw('count(*) as countQty, MAX(raw_dispatch_masters.created_at) as dt')]);
-
 
             } elseif ($machineData->type == 'packing') {
                 DB::enableQueryLog();
@@ -140,13 +119,43 @@ class DashboardCtr extends Controller
     }
     public function getDispatchSave(Request $request)
     {
+        
         $SO_PO_NO = $request->SO_PO_NO;
         $ITEM_NO = $request->ITEM_NO;
         $ITEM_CODE = $request->ITEM_CODE;
         $DISP_QTY = $request->DISP_QTY;
         $UOM = $request->UOM;
         $PLANT_CODE = $request->PLANT_CODE;
+        
+        DB::transaction(function() use($request){
 
+            OrderMaster::create([
+                'so_po_no' => $request->SO_PO_NO,
+                'sold_to' => $request->SOLD_TO,
+                'sales_org' => $request->SALES_ORG,
+                'dist_chan' => $request->DIST_CHAN,
+                'po_no' => $request->PO_NO,
+                'plant' => $request->PLANT,
+                'total'=> $request->TOTAL_AMT
+            ]);
+
+            foreach($request->item as $items)
+            {
+                DispatchMaster::create([
+                    'so_po_no' => $request->SO_PO_NO,
+                    'sales_voucher' => $items['SO_NO'],
+                    'item_no' => $items['ITEM_NO'],
+                    'product_id' => $items['ITEM_CODE'],
+                    'qty' => $items['ORD_QTY'],
+                    'unit' => $items['UOM'],
+                    'barcode' => $items['BARCODE'],
+                    'plant_id' => $items['PLANT_CODE']
+                ]);
+            }
+        });
+
+        
+        dd(DispatchMaster::all()->toArray());
         $productData = ProductMaster::where('material_code', $ITEM_CODE)->first(['product_id', 'barcode']);
         $data = new DispatchMaster;
         $data->sales_voucher = $SO_PO_NO;
@@ -158,6 +167,9 @@ class DashboardCtr extends Controller
         $data->plant_id = $PLANT_CODE;
         $data->line_id = 0;
         $data->save();
+
+        
+
         $content = [
             'success' => true,
             'message' => 'updated data'

@@ -5,11 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DispatchMaster extends Model
+class OrderMaster extends Model
 {
     use HasFactory;
-    protected $primaryKey = 'dispatch_id';
-    protected $table = "dispatch_masters";
 
     protected $guarded = [];
 }

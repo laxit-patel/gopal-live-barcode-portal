@@ -75,6 +75,7 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
     Route::get('/plant/edit/{id}', [PlantCtr::class, 'edit'])->name('plant.edit');
     Route::post('/plant/save', [PlantCtr::class, 'save'])->name('plant.save');
     Route::get('/plant/delete/{id}', [PlantCtr::class, 'delete'])->name('plant.delete');
+    Route::get('/plant/line/fetch',[PlantCtr::class, 'fetchLine'])->name('plant.line.fetch');
 
     Route::get('/line', [LineCtr::class, 'list'])->name('line');
     Route::get('/line/edit/{id}', [LineCtr::class, 'edit'])->name('line.edit');
@@ -90,12 +91,15 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
 
     Route::get('/dispatch', [DispatchCtr::class, 'list'])->name('dispatch');
     Route::post('/dispatch/update', [DispatchCtr::class, 'update'])->name('dispatch.update');
+    Route::post('/dispatch/update/line', [DispatchCtr::class, 'updateLine'])->name('dispatch.update.line');
 
 
     Route::get('/configuration', [ConfigurationCtr::class, 'list'])->name('configuration');
     Route::post('/configuration', [ConfigurationCtr::class, 'save'])->name('configuration');
     Route::get('/raw/production/clear', [ConfigurationCtr::class, 'rawProductionClear'])->name('raw.production.clear');
     Route::get('/raw/dispatch/clear', [ConfigurationCtr::class, 'rawDispatchClear'])->name('raw.dispatch.clear');
+
+    
 });
 
 // Route Logout 

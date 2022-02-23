@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PlantMaster;
 use Illuminate\Http\Request;
+use App\Models\LineMaster;
 
 class PlantCtr extends Controller
 {
@@ -28,5 +29,10 @@ class PlantCtr extends Controller
     {
         PlantMaster::where('plant_id', $id)->delete();
         return redirect()->route('plant')->with('message', 'Successfully deleted.');
+    }
+
+    public function fetchLine(Request $request)
+    {
+        return LineMaster::where('plant_id',$request->query('plant'))->get()->toArray();
     }
 }

@@ -16,6 +16,8 @@ return new class extends Migration
         Schema::create('dispatch_masters', function (Blueprint $table) {
             $table->increments('dispatch_id');
             $table->string('sales_voucher');
+            $table->string('so_po_no');
+            $table->string('item_no');
             $table->integer('plant_id');
             $table->integer('line_id');
             $table->string('barcode');

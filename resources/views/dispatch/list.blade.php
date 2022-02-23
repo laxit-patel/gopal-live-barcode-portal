@@ -72,32 +72,22 @@
                                 @foreach ($dispatchData as $k=>$row)
                                 <tr>
                                     <td class="text-center ">{{$k+1}}</td>
-                                    <td class="text-center ">{{$row->material_code }}</td>
+                                    <td class="text-center ">{{$row->product_id }}</td>
                                     <td>{{$row->description }}</td>
                                     <td>{{$row->barcode }}</td>
                                     <td class="text-center ">{{$row->qty }}</td>
                                     <td class="text-center ">{{$row->unit }}</td>
                                     <td class="text-center ">{{$row->plant_id }}</td>
-                                    <td class="text-center "><select name="line_id[{{$row->dispatch_id }}]" class="form-control">
-                                            <option value=""></option>
-                                            @foreach ($lineData as $line)
-                                            @if($line->plant_id==$row->plant_id)
-                                            <option value="{{$line->line_id}}">{{$line->line_name}}</option>
-                                            @endif
-                                            @endforeach
-                                        </select>
+                                    <td class="text-center ">
+                                        <button type="button" data-id="{{ $row->dispatch_id }}" class="btn btn-sm btn-primary btn-hover-grow" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                            Map
+                                        </button>
                                     </td>
                                 </tr>
                                 @endforeach
                             </tbody>
                             <!--end::Table body-->
                         </table>
-
-                        <div class="d-flex flex-column mb-7 text-center">
-                            <div class="w-25">
-                                <button type="submit" class="btn btn-primary">Save</button>
-                            </div>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -107,7 +97,53 @@
     <!--end::Post-->
 </div>
 <!--end::Content-->
+<div class="modal fade " tabindex="-1" id="kt_modal_1">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <form action="{{ route('dispatch.update.line') }}" method="post">
+                @csrf
+            <div class="modal-header">
+                <h5 class="modal-title">Line Mapping</h5>
 
+                <!--begin::Close-->
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <span class="svg-icon svg-icon-2x"></span>
+                </div>
+                <!--end::Close-->
+            </div>
+
+            <div class="modal-body">
+
+                
+                    <input type="hidden" name="dispatch_id" id="dispatch_id">
+                
+                    <div class="mb-10">
+                        <label for="" class="form-label">Select Plant</label>
+                        <select name="plant_id" class="form-select" aria-label="Select example" onchange="fetchLine(this)">
+                            <option selected disabled>Select Plant</option>
+                            @foreach ($plantData as $plant)
+                            <option value="{{ $plant->plant_id }}">{{ $plant->plant_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+    
+                    <div class="mb-10">
+                        <label for="" class="form-label">Select Line</label>
+                        <select name="line_id" class="form-select" id="line_selector">
+                        </select>
+                    </div> 
+                
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 
@@ -118,6 +154,37 @@
 <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/add.js"></script>
 <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/list/list.js"></script>
 <script src="{{ url('/theme') }}/assets/js/widgets.bundle.js"></script>
+
+<script>
+
+    $('#kt_modal_1').on('show.bs.modal', function (e) {
+        var data = $(e.relatedTarget).data('id'); 
+        $(this).find('#dispatch_id').val(data);
+    });
+
+    function fetchLine(e)
+    {
+        $.ajax({
+            url: "{{ route('plant.line.fetch') }}",
+            type: "GET",
+            data: {
+                'plant':e.value
+            },
+            success: function(lines){
+                $('#line_selector').find('option').remove().end()
+                .append('<option selected disabled>Select Line</option>');
+                $.each(lines, function(counter,line) {
+                    $('#line_selector').append($('<option>', {
+                        value: line['line_id'],
+                        text: line['line_name']
+                    }));
+                });
+
+            }
+        });
+    }
+
+</script>
 {{-- <script src="{{ url('/theme') }}/assets/js/custom/widgets.js"></script> --}}
 {{-- <script src="{{ url('/theme') }}/assets/js/custom/utilities/modals/users-search.js"></script> --}}
 
