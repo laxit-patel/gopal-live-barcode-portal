@@ -40,7 +40,7 @@ class DispatchCtr extends Controller
             'line_id' => $request->line_id,
             'plant_id' => $request->plant_id
         ]);
-        return redirect()->route('dispatch');
+        return redirect()-`>route('dispatch');
     }
 
 }
