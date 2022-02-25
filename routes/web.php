@@ -91,6 +91,8 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
     Route::get('/dispatch', [DispatchCtr::class, 'list'])->name('dispatch');
     Route::post('/dispatch/update', [DispatchCtr::class, 'update'])->name('dispatch.update');
     Route::post('/dispatch/update/line', [DispatchCtr::class, 'updateLine'])->name('dispatch.update.line');
+    Route::get('/dispatch/get/items/{order}', [DispatchCtr::class, 'getLineItems'])->name('dispatch.get.items');
+    Route::get('/dispatch/get/pending/{line_no}/{plant}/{po}', [DispatchCtr::class, 'getPendingItems'])->name('dispatch.get.pending');
 
 
     Route::get('/configuration', [ConfigurationCtr::class, 'list'])->name('configuration');

@@ -90,8 +90,26 @@
                     <!--end::Toolbar-->
                     <!--begin::Post-->
                     @if(!empty(Request::get('plant_id')) && !empty(Request::get('line_id')))
-                            <table class="table g-5 font-weight-bolder table-bordered rounded align-middle table-sm   " id="">
+                            <table class="table g-5 font-weight-bolder table-bordered rounded align-middle table-sm   " id="displayData">
                                 <!--begin::Table head-->
+                                @if(isset($display_type) && $display_type == 'dispatch')
+                                <thead >
+                                    <tr class='bg-light-primary fs-2 text-start text-gray-800 fw-bolder fs-7 text-uppercase gs-0'>
+                                    <td class='text-end'>Customer Name</td>
+                                    <td colspan='' >{{$customer[0]->name}}  </td>
+                                    <td></td>
+                                    <td class='text-end'>Customer Number</td>
+                                    <td colspan='' >{{ $customer[0]->customer_number }}</td>
+                                    </tr>
+                                    <tr class='bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0'>
+                                        <th class='text-center'>Product Code</th>
+                                        <th >Product Name</th>
+                                        <th >Barcode</th>
+                                        <th class='text-center '>Qty</th>
+                                        <th class='text-center '>Pending</th>
+                                    </tr>
+                                    </thead>
+                                @else
                                 <thead>
                                     <!--begin::Table row-->
                                     <tr class="bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0">
@@ -102,10 +120,23 @@
                                     </tr>
                                     <!--end::Table row-->
                                 </thead>
+                                @endif
                                 <!--end::Table head-->
                                 <!--begin::Table body-->
-                                <tbody class="" id="displayData" style="min-height: auto">
+                                <tbody class=""  style="min-height: auto">
                                     @if(count($productData))
+                                    @if(isset($display_type) && $display_type == 'dispatch')
+                                    @foreach($productData as $k=>$product)
+                                    
+                                    <tr class="fs-2 fw-bold text-gray-700">
+                                        <td class="text-center">{{$product->product_id}}</td>
+                                        <td class="">{{$product->description}}</td>
+                                        <td class="">{{$product->barcode}}</td>
+                                        <td class="text-center fw-boldest">{{$product->qty}}</td>
+                                        <td class="text-center fw-boldest">{{$product->pending}}</td>
+                                    </tr>
+                                    @endforeach
+                                    @elseif( isset($display_type) && $display_type == 'packing')
                                     @foreach($productData as $k=>$product)
                                     <tr class="fs-2 fw-bold text-gray-700">
                                         <td class="text-center">{{$product->material_code}}</td>
@@ -114,6 +145,7 @@
                                         <td class="text-center fw-boldest">{{$product->countQty}}</td>
                                     </tr>
                                     @endforeach
+                                    @endif
                                     
                                     @else
                                     <tr>
@@ -121,16 +153,6 @@
                                     </tr>
                                     @endif
                                 </tbody>
-                                <tfoot >
-                                    <!--begin::Table row-->
-                                    <tr class="bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0">
-                                        <th class="text-center">Product Code</th>
-                                        <th class="">Product Name</th>
-                                        <th class="">Barcode</th>
-                                        <th class="text-center ">No. Of Boxes</th>
-                                    </tr>
-                                    <!--end::Table row-->
-                                </tfoot>
                                 <!--end::Table body-->
                             </table>
                             @endif
@@ -177,11 +199,9 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script>
  
-
-        
         $(document).ready(function() {
             var no = 0;
-            var lastid = parseInt('<?php echo count($productData)?$productData[0]["id"]:0;?>');
+             var lastid = parseInt('<?php echo count($productData)?$productData[0]->dispatch_id:0;?>');
             var plant_id = '<?php echo Request::get("plant_id");?>';
             var line_id = '<?php echo Request::get("line_id");?>';
             if (plant_id != '' & line_id != '') {

@@ -56,13 +56,9 @@
                                 <!--begin::Table row-->
                                 <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
                                     <th class="text-center">#</th>
-                                    <th class="text-left">Product Code</th>
-                                    <th class="">Product Name</th>
-                                    <th class="">Barcode</th>
-                                    <th class="text-center">Qty</th>
-                                    <th class="text-center">UOM</th>
+                                    <th class="text-left">PO No.</th>
                                     <th class="text-center ">Plant Code</th>
-                                    <th class="text-center ">Line Code</th>
+                                    <th class="text-center ">Total</th>
                                 </tr>
                                 <!--end::Table row-->
                             </thead>
@@ -72,16 +68,19 @@
                                 @foreach ($dispatchData as $k=>$row)
                                 <tr>
                                     <td class="text-center ">{{$k+1}}</td>
-                                    <td class="text-center ">{{$row->product_id }}</td>
-                                    <td>{{$row->description }}</td>
-                                    <td>{{$row->barcode }}</td>
-                                    <td class="text-center ">{{$row->qty }}</td>
-                                    <td class="text-center ">{{$row->unit }}</td>
-                                    <td class="text-center ">{{$row->plant_id }}</td>
+                                    <td class="text-left ">{{$row->so_po_no }}</td>
+                                    <td class="text-center ">{{$row->plant }}</td>
+                                    <td class="text-center ">{{$row->total }}</td>
                                     <td class="text-center ">
-                                        <button type="button" data-id="{{ $row->dispatch_id }}" class="btn btn-sm btn-primary btn-hover-grow" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
+                                        
+                                        @if($row->plant_id == "")
+                                        <button type="button" data-id="{{ $row->so_po_no }}" data-plant="{{ $row->plant_id }}" class="btn btn-sm btn-primary btn-hover-scale" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
                                             Map
                                         </button>
+                                        @endif
+                                        <a href="{{ route('dispatch.get.items',['order' => $row->so_po_no]) }}"  class="btn btn-sm btn-success btn-hover-scale" >
+                                            Line Items
+                                        </a>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -114,26 +113,24 @@
 
             <div class="modal-body">
 
+                <input type="hidden" name="so_po_no" id="so_po_no">
                 
-                    <input type="hidden" name="dispatch_id" id="dispatch_id">
+                <div class="mb-10">
+                    <label for="" class="form-label">Select Plant</label>
+                    <select name="plant_id" id="plant_selector" class="form-select" aria-label="Select example" onchange="fetchLine(this)">
+                        <option selected disabled>Select Plant</option>
+                        @foreach ($plantData as $plant)
+                        <option value="{{ $plant->plant_id }}|{{$plant->plant_name}}">{{ $plant->plant_name }}</option>
+                        @endforeach
+                    </select>
+                </div>    
                 
-                    <div class="mb-10">
-                        <label for="" class="form-label">Select Plant</label>
-                        <select name="plant_id" class="form-select" aria-label="Select example" onchange="fetchLine(this)">
-                            <option selected disabled>Select Plant</option>
-                            @foreach ($plantData as $plant)
-                            <option value="{{ $plant->plant_id }}">{{ $plant->plant_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-    
-                    <div class="mb-10">
-                        <label for="" class="form-label">Select Line</label>
-                        <select name="line_id" class="form-select" id="line_selector">
-                        </select>
-                    </div> 
+                <div class="mb-10">
+                    <label for="" class="form-label">Select Line</label>
+                    <select name="line_id" class="form-select" id="line_selector">
+                    </select>
+                </div> 
                 
-
             </div>
 
             <div class="modal-footer">
@@ -158,12 +155,32 @@
 <script>
 
     $('#kt_modal_1').on('show.bs.modal', function (e) {
+
         var data = $(e.relatedTarget).data('id'); 
-        $(this).find('#dispatch_id').val(data);
+        var plant = $(e.relatedTarget).data('plant'); 
+        
+        $(this).find('#so_po_no').val(data);
+
+        var flag = 0;
+        $(this).find('#plant_selector > option').each(function(){
+            
+            if(this.value.split('|')[0] == plant)
+            {
+                $(this).attr('selected',true);
+                flag = 1;
+            }
+        });
+
+        if(flag == 1)
+        {
+            $(this).find('#plant_selector').trigger('change');
+        }
+        
     });
 
     function fetchLine(e)
     {
+        
         $.ajax({
             url: "{{ route('plant.line.fetch') }}",
             type: "GET",
