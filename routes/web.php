@@ -103,6 +103,11 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
     
 });
 
+Route::get('/sync', function () {
+    Artisan::call('db:sync');
+    return 'Database Synced';
+});
+
 // Route Logout 
 Route::get('/logout', function () {
     session()->forget('loggedData');

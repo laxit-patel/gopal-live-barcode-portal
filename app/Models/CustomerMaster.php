@@ -10,4 +10,6 @@ class CustomerMaster extends Model
     use HasFactory;
 
     protected $table = 'customer_master';
+
+    protected $guarded = [];
 }

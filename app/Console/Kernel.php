@@ -5,6 +5,7 @@ namespace App\Console;
 use App\Models\Configuration;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -33,6 +34,10 @@ class Kernel extends ConsoleKernel
         if ($productionVoucher != 'Off' && !empty($productionVoucher)) {
             $schedule->command('Production:Voucher')->$productionVoucher();
         }
+
+        $schedule->command('db:sync')->daily();
+        Log::debug('Syncing..');
+
     }
 
     /**
