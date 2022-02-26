@@ -98,6 +98,7 @@
                                     <td class='text-end'>Customer Name</td>
                                     <td colspan='' >{{$customer[0]->name}}  </td>
                                     <td></td>
+                                    <td></td>
                                     <td class='text-end'>Customer Number</td>
                                     <td colspan='' >{{ $customer[0]->customer_number }}</td>
                                     </tr>
@@ -105,6 +106,7 @@
                                         <th class='text-center'>Product Code</th>
                                         <th >Product Name</th>
                                         <th >Barcode</th>
+                                        <th class='text-center '>SO. Qty</th>
                                         <th class='text-center '>Qty</th>
                                         <th class='text-center '>Pending</th>
                                     </tr>
@@ -125,7 +127,11 @@
                                 <!--begin::Table body-->
                                 <tbody class=""  style="min-height: auto">
                                     @if(count($productData))
+                                    
                                     @if(isset($display_type) && $display_type == 'dispatch')
+
+                                    
+
                                     @foreach($productData as $k=>$product)
                                     
                                     <tr class="fs-2 fw-bold text-gray-700">
@@ -133,9 +139,25 @@
                                         <td class="">{{$product->description}}</td>
                                         <td class="">{{$product->barcode}}</td>
                                         <td class="text-center fw-boldest">{{$product->qty}}</td>
+                                        <td class="text-center fw-boldest">{{$product->countQty}}</td>
                                         <td class="text-center fw-boldest">{{$product->pending}}</td>
                                     </tr>
                                     @endforeach
+
+                                    @if($pending)
+                                    @foreach ($pending as $key => $row)
+                            
+                                        <tr class='fs-2 text-gray-700 fw-bold bg-light-danger'>
+                                        <td class='text-center '>{{$row->product_id}}</td>
+                                        <td>{{$row->description}}</td>
+                                        <td>{{$row->barcode}}</td>
+                                        <td class='text-center fw-boldest fs-2'>{{$row->qty}}</td>
+                                        <td class='text-center fw-boldest fs-2'>{{$row->countQty}}</td>
+                                        <td class='text-center fw-boldest fs-2'>{{$row->pending}}</td>
+                                        </tr>
+                                    @endforeach
+                                    @endif
+
                                     @elseif( isset($display_type) && $display_type == 'packing')
                                     @foreach($productData as $k=>$product)
                                     <tr class="fs-2 fw-bold text-gray-700">

@@ -22,6 +22,7 @@
                 <img alt="Logo" src="{{ asset('theme/assets/media/logos/favicon.png') }}" class="h-25px h-lg-30px d-none d-md-block" />
                 <img alt="Logo" src="{{ asset('theme/assets/media/logos/favicon.png') }}" class="h-25px d-block d-md-none" />
             </a>
+            `
             <!--end::Logo-->
         </div>
         <!--end::Brand-->

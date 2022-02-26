@@ -48,15 +48,39 @@ class DispatchCtr extends Controller
         $line_id = $OrderDetails->line_no;
         $plant_code = $OrderDetails->plant;
         
-        $lineItems = DB::select("select dm.*, pm.plant_name, lm.line_name, (dm.qty - count(dm.barcode)) as pending, pms.description from dispatch_masters as dm join plant_masters as pm on pm.plant_id = dm.plant_id
+        $lineItems = DB::select("select dm.*, 
+        pm.plant_name, 
+        lm.line_name, 
+        (dm.qty - count(rd.barcode)) as pending, 
+        pms.description ,
+        count(rd.barcode) as countQty
+        from dispatch_masters as dm join plant_masters as pm on pm.plant_id = dm.plant_id
         join order_masters as om on om.so_po_no = dm.so_po_no
         left join line_masters as lm on lm.plant_id = pm.plant_id
         join product_masters as pms on pms.material_code = dm.product_id
         left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
         where pm.plant_name = '{$plant_code}' and dm.line_id = '{$line_id}' group by dm.barcode");
 
+        $nagative = DB::select("select 
+        rdm.*,
+        pl.plant_name, 
+        lm.line_name, 
+        ifnull((dm.qty - count(rdm.barcode)), 0) as pending, 
+        pm.description, 
+        count(*) as countQty,
+        ifnull(dm.qty, 0) as qty
+        from `raw_dispatch_masters` as rdm 
+        join plant_masters as pl on pl.plant_id = rdm.plant_id 
+        join line_masters as lm on lm.plant_id = rdm.plant_id 
+        join `product_masters` as pm on pm.material_code = `rdm`.`product_id` 
+        left join dispatch_masters as dm on dm.barcode = rdm.barcode 
+        where pl.plant_name = '{$plant_code}' 
+        and dm.barcode IS null 
+        and rdm.`line_id` = '{$line_id}'
+        group by rdm.barcode;");
+
         
-        return view('dispatch.items',compact('lineItems','OrderDetails'));
+        return view('dispatch.items',compact('lineItems','OrderDetails', 'nagative'));
     }
 
     public function updateLine(Request $request)
@@ -84,39 +108,66 @@ class DispatchCtr extends Controller
     public function getPendingItems($plant_no,$line_no,$po)
     {
 
-        // $pending = DB::select("select dm.*, dm.product_id as mat_code, (dm.qty - count(rd.barcode)) as pending from dispatch_masters as dm 
-        // join plant_masters as pm on pm.plant_id = dm.plant_id 
-        // left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
-        // where dm.so_po_no = '{$po}' 
-        // and pm.plant_name = '{$plant_no}' 
-        // and dm.line_id = '{$line_no}'
-        // group by dm.barcode");
-
         $pending = DB::select("select dm.*, 
         pm.plant_name, 
         lm.line_name, 
         (dm.qty - count(rd.barcode)) as pending, 
-        pms.description 
+        pms.description ,
+        count(rd.barcode) as countQty
         from dispatch_masters as dm join plant_masters as pm on pm.plant_id = dm.plant_id
         join order_masters as om on om.so_po_no = dm.so_po_no
         left join line_masters as lm on lm.plant_id = pm.plant_id
         join product_masters as pms on pms.material_code = dm.product_id
         left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
         where pm.plant_name = '{$plant_no}' and dm.line_id = '{$line_no}' group by dm.barcode");
+
+        $nagative = DB::select("select 
+        rdm.*,
+        pl.plant_name, 
+        lm.line_name, 
+        ifnull((dm.qty - count(rdm.barcode)), 0) as pending, 
+        pm.description, 
+        count(*) as countQty,
+        ifnull(dm.qty, 0) as qty
+        from `raw_dispatch_masters` as rdm 
+        join plant_masters as pl on pl.plant_id = rdm.plant_id 
+        join line_masters as lm on lm.plant_id = rdm.plant_id 
+        join `product_masters` as pm on pm.material_code = `rdm`.`product_id` 
+        left join dispatch_masters as dm on dm.barcode = rdm.barcode 
+        where pl.plant_name = '{$plant_no}' 
+        and dm.barcode IS null 
+        and rdm.`line_id` = '{$line_no}'
+        group by rdm.barcode;");
         
 
         $tr = '';
         foreach ($pending as $key => $row) {
             $key++;
             $tr .= "<tr class=' '>
-            <td class='text-center' >{$key}</td>
             <td class='text-left '>{$row->product_id}</td>
             <td class='text-left '>{$row->description}</td>
             <td class='text-left '>{$row->barcode}</td>
             <td class='text-left '>{$row->sales_voucher}</td>
             <td class='text-center '>{$row->qty}</td>
+            <td class='text-center '>{$row->countQty}</td>
             <td class='text-center '>{$row->pending}</td>
             </tr>";
+        }
+        if ($nagative) {
+            foreach ($nagative as $key => $row) {
+                
+                $tr .= 
+                "<tr class='bg-light-danger '>
+            
+            <td class=''>{$row->product_id}</td>
+            <td class='text-left '>{$row->description}</td>
+            <td class='text-left '>{$row->barcode}</td>
+            <td class='text-left '></td>
+            <td class='text-center '>{$row->qty}</td>
+            <td class='text-center '>{$row->countQty}</td>
+            <td class='text-center '>{$row->pending}</td>
+            </tr>";
+            }
         }
         
         return response()->json($tr);

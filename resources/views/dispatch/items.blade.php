@@ -112,11 +112,11 @@
                             <thead>
                                 <!--begin::Table row-->
                                 <tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-                                    <th class="text-center">#</th>
                                     <th class="text-left">Material Code</th>
                                     <th class="text-left">Name</th>
                                     <th class="text-left ">Barcode</th>
-                                    <th class="text-left ">SO No.</th>
+                                    <th class="text-left ">Sales Voucher</th>
+                                    <th class="text-left ">SO Qty.</th>
                                     <th class="text-center ">Qty</th>
                                     <th class="text-center ">Pending Qty</th>
                                 </tr>
@@ -127,15 +127,29 @@
                             <tbody id="displayData">
                                 @foreach ($lineItems as $k=>$item)
                                 <tr>
-                                    <td class="text-center ">{{$k+1}}</td>
                                     <td class="text-left ">{{$item->product_id }}</td>
                                     <td class="text-left ">{{$item->description }}</td>
                                     <td class="text-left ">{{$item->barcode }}</td>
                                     <td class="text-left ">{{$item->sales_voucher }}</td>
                                     <td class="text-center ">{{$item->qty }}</td>
+                                    <td class="text-center ">{{$item->countQty }}</td>
                                     <td class="text-center ">{{ $item->pending }}</td>
                                 </tr>
                                 @endforeach
+                                @if($nagative)
+                                    @foreach ($nagative as $key => $row)
+                                        
+                                        <tr class="bg-light-danger">
+                                        <td class=' '>{{$row->product_id}}</td>
+                                        <td>{{$row->description}}</td>
+                                        <td>{{$row->barcode}}</td>
+                                        <td></td>
+                                        <td class='text-center '>{{$row->qty}}</td>
+                                        <td class='text-center '>{{$row->countQty}}</td>
+                                        <td class='text-center '>{{$row->pending}}</td>
+                                        </tr>
+                                    @endforeach
+                                    @endif
                             </tbody>
                             <!--end::Table body-->
                         </table>

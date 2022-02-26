@@ -32,6 +32,7 @@ class DashboardCtr extends Controller
         $productData = [];
         $display_type = null;
         $customer = null;
+        $pending = null;
 
         // $line_id = '2';
         // $plant_id = '2';
@@ -39,16 +40,17 @@ class DashboardCtr extends Controller
         if (!empty($plant_id) && !empty($line_id)) {
 
             $machineData = BarcodeMachineMaster::where('plant_id', $plant_id)->where('line_id', $line_id)->first('type');
-            $display_type = $machineData->type;
-
+            
             $pageType = $machineData->type;
+            $display_type = $machineData->type;
             if ($machineData->type == 'dispatch') {
-
+                
                 $productData = DB::select("select dm.*, 
                 pm.plant_name, 
                 lm.line_name, 
                 (dm.qty - count(rd.barcode)) as pending, 
-                pms.description 
+                pms.description ,
+                count(rd.barcode) as countQty
                 from dispatch_masters as dm join plant_masters as pm on pm.plant_id = dm.plant_id
                 join order_masters as om on om.so_po_no = dm.so_po_no
                 left join line_masters as lm on lm.plant_id = pm.plant_id
@@ -56,13 +58,32 @@ class DashboardCtr extends Controller
                 left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
                 where pm.plant_id = '{$plant_id}' and dm.line_id = '{$line_id}' group by dm.barcode");
 
-                $order = $productData[0]->so_po_no;
+                $pending = DB::select("select 
+                rdm.*,
+                pl.plant_name, 
+                lm.line_name, 
+                ifnull((dm.qty - count(rdm.barcode)), 0) as pending, 
+                pm.description, 
+                count(*) as countQty,
+                ifnull(dm.qty, 0) as qty
+                from `raw_dispatch_masters` as rdm 
+                join plant_masters as pl on pl.plant_id = rdm.plant_id 
+                join line_masters as lm on lm.plant_id = rdm.plant_id 
+                join `product_masters` as pm on pm.material_code = `rdm`.`product_id` 
+                left join dispatch_masters as dm on dm.barcode = rdm.barcode 
+                where pl.plant_id = '{$plant_id}' 
+                and dm.barcode IS null 
+                and rdm.`line_id` = '{$line_id}'
+                group by rdm.barcode;");
                 
+                $order = $productData[0]->so_po_no;
+
 
                 $customer = DB::select("select * from order_masters as om 
                 join customer_master as cm 
                 on cm.customer_id = om.customer_id
                 where om.so_po_no = '{$order}'");
+
             } elseif ($machineData->type == 'packing') {
 
                 DB::enableQueryLog();
@@ -99,6 +120,7 @@ class DashboardCtr extends Controller
                     <td class='text-center fw-boldest fs-2'>{$row->countQty}</td>
                     </tr>";
                     }
+                    
 
                     return response()->json($th . $tr);
                 } elseif ($machineData->type == 'dispatch') {
@@ -112,6 +134,7 @@ class DashboardCtr extends Controller
                     <td class='text-end'>Customer Name</td>
                     <td colspan='' >{$customer_name}</td>
                     <td></td>
+                    <td></td>
                     <td class='text-end'>Customer Number</td>
                     <td colspan='' >{$customer_number}</td>
                     </tr>
@@ -119,6 +142,7 @@ class DashboardCtr extends Controller
                         <th class='text-center'>Product Code</th>
                         <th >Product Name</th>
                         <th >Barcode</th>
+                        <th class='text-center '>SO. Qty</th>
                         <th class='text-center '>Qty</th>
                         <th class='text-center '>Pending</th>
                     </tr>
@@ -131,8 +155,23 @@ class DashboardCtr extends Controller
                         <td>{$row->description}</td>
                         <td>{$row->barcode}</td>
                         <td class='text-center fw-boldest fs-2'>{$row->qty}</td>
+                        <td class='text-center fw-boldest fs-2'>{$row->countQty}</td>
                         <td class='text-center fw-boldest fs-2'>{$row->pending}</td>
                         </tr>";
+                    }
+
+                    if ($pending) {
+                        foreach ($pending as $key => $row) {
+                            
+                            $tr .= "<tr class='fs-2 text-gray-700 fw-bold bg-light-danger'>
+                            <td class='text-center '>{$row->product_id}</td>
+                            <td>{$row->description}</td>
+                            <td>{$row->barcode}</td>
+                            <td class='text-center fw-boldest fs-2'>{$row->qty}</td>
+                            <td class='text-center fw-boldest fs-2'>{$row->countQty}</td>
+                            <td class='text-center fw-boldest fs-2'>{$row->pending}</td>
+                            </tr>";
+                        }
                     }
 
                     return response()->json($th . $tr);
@@ -145,7 +184,7 @@ class DashboardCtr extends Controller
         // return $productData;
         $plantData = PlantMaster::orderby('plant_name')->get(['plant_id', 'plant_name']);
         $lineData = LineMaster::orderby('line_name')->get(['line_id', 'plant_id', 'line_name']);
-        return view('rawDataList', compact('productData', 'plantData', 'lineData', 'pageType', 'display_choice','display_type','customer'));
+        return view('rawDataList', compact('productData', 'plantData', 'lineData', 'pageType', 'display_choice', 'display_type', 'customer','pending'));
     }
 
 
