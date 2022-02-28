@@ -67,5 +67,47 @@ class ProductionVoucher extends Command
             RawPackingMaster::where('status', '0')->where('raw_packing_id', $row->raw_packing_id)->update(['status' => '1']);
         }
         $this->info('Updated on packing production');
+
+        $this->sapHeader();
+
+    }
+
+
+private function sapHeader()
+    {
+        $curl = curl_init();
+        $headers = [];
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => 'http://gsdevapp:8000/sap/opu/odata/sap/ZCHECKWARE_UPDATE_1_SRV/Zcheckware_1Set?$format=json',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '', 
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_HTTPHEADER => array(
+        'x-csrf-token: Fetch',
+        'Connection: keep-alive',
+        'Authorization: Basic UFdDQUJBUDphc2FwNEAxODA5',
+        'Cookie: sap-usercontext=sap-client=120'
+        ),
+        ));
+        curl_setopt(
+        $curl,
+        CURLOPT_HEADERFUNCTION,
+        function ($curl2, $header) use (&$headers) {
+        $len = strlen($header);
+        $header = explode(':', $header, 2);
+        if (count($header) <  2) // ignore invalid headers
+        return $len;
+
+        $headers[strtolower(trim($header[0]))] = trim($header[1]);
+        return $len;
+        }
+        );
+
+        curl_exec($curl);
+        return $headers;
     }
 }

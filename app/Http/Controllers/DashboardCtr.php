@@ -184,6 +184,7 @@ class DashboardCtr extends Controller
         // return $productData;
         $plantData = PlantMaster::orderby('plant_name')->get(['plant_id', 'plant_name']);
         $lineData = LineMaster::orderby('line_name')->get(['line_id', 'plant_id', 'line_name']);
+
         return view('rawDataList', compact('productData', 'plantData', 'lineData', 'pageType', 'display_choice', 'display_type', 'customer','pending'));
     }
 
