@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LoginMaster;
+use App\Models\RoleMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -53,7 +54,9 @@ class LoginCtr extends Controller
         if (!empty($id)) {
             $data = LoginMaster::where('login_id', $id)->first();
         }
-        return view('login.form', compact('data'));
+
+        $roles = RoleMaster::all();
+        return view('login.form', compact('data','roles'));
     }
 
     public function save(Request $request)
@@ -61,7 +64,7 @@ class LoginCtr extends Controller
         $request->validate([
             'name' => 'required',
             'designation' => 'required',
-            // 'role' => 'required',
+            'role' => 'required',
             'username' => 'required|email',
             'password' => 'required'
         ]);
@@ -73,7 +76,7 @@ class LoginCtr extends Controller
         }
         $data->name = $request->name;
         $data->designation = $request->designation;
-        // $data->role = $request->role;
+        $data->role = $request->role;
         $data->username = $request->username;
         if (!empty($request->password)) {
             $data->password = Hash::make($request->password);

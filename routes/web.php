@@ -11,6 +11,7 @@ use App\Http\Controllers\PlantCtr;
 use App\Http\Controllers\ProductCtr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AccessController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,9 +41,6 @@ Route::get('/', function () {
     }
 });
 
-
-Route::get('/display-data', [DashboardCtr::class, 'listdata'])->name('row.packing');
-Route::get('/display-data/get/{ajax?}/{no?}', [DashboardCtr::class, 'listdata']);
 
 Route::get('/packing-production/createVoucher', function () {
     Artisan::call('Production:Voucher');
@@ -100,7 +98,16 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
     Route::get('/raw/production/clear', [ConfigurationCtr::class, 'rawProductionClear'])->name('raw.production.clear');
     Route::get('/raw/dispatch/clear', [ConfigurationCtr::class, 'rawDispatchClear'])->name('raw.dispatch.clear');
 
+    Route::get('/access/list', [AccessController::class, 'index'])->name('access.list');
+    Route::get('/access/view/{role}', [AccessController::class, 'view_access'])->name('access.view');
+    Route::get('/access/manage', [AccessController::class, 'manage'])->name('access.manage');
+    Route::post('/access/manage/create', [AccessController::class, 'create_access'])->name('access.create');
+    Route::get('/access/role', [AccessController::class, 'role'])->name('access.role');
+    Route::post('/access/role/create', [AccessController::class, 'create_role'])->name('access.role.create');
     
+    Route::get('/display-data', [DashboardCtr::class, 'listdata'])->name('row.packing');
+    Route::get('/display-data/get/{ajax?}/{no?}', [DashboardCtr::class, 'listdata']);
+
 });
 
 Route::get('/sync', function () {

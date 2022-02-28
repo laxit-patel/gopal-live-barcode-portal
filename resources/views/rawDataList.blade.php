@@ -49,6 +49,7 @@
                 <div class="content d-flex flex-column flex-column-fluid" style="padding: 0px;" id="kt_content">
                     <!--begin::Toolbar-->
                     @if($display_choice)
+                    @include('layouts.success_message')
                     <div class="toolbar d-flex flex-stack mb-3 mb-lg-5" id="kt_toolbar">
                         <!--begin::Container-->
                         <div id="kt_toolbar_container" class="container-fluid d-flex flex-stack flex-wrap">

@@ -29,7 +29,7 @@ return new class extends Migration
                 'login_id' => 1,
                 'name' => 'Master Admin',
                 'designation' => 'Admin',
-                // 'role' => '[]',
+                'role' => 'admin',
                 'username' => 'admin@aeonx.digital',
                 'password' => '$2y$10$YpiOegPu6ogo6hQCbaY1tODv5O2A/elEcFnOOQnhGwkzPp1hLtACG',
                 'created_id' => '0'

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AccessMaster;
 use App\Models\BarcodeMachineMaster;
 use App\Models\DispatchMaster;
 use App\Models\LineMaster;
@@ -24,6 +25,7 @@ class DashboardCtr extends Controller
 
     public function listdata(Request $request)
     {
+
         $ajax = ($request->ajax) ? $request->ajax : 0;
         $no = ($request->no) ? $request->no : 0;
         $plant_id = $request->plant_id;
@@ -38,6 +40,8 @@ class DashboardCtr extends Controller
         // $plant_id = '2';
 
         if (!empty($plant_id) && !empty($line_id)) {
+
+            $this->access($plant_id,$line_id); //check if user has access
 
             $machineData = BarcodeMachineMaster::where('plant_id', $plant_id)->where('line_id', $line_id)->first('type');
             
@@ -284,5 +288,20 @@ class DashboardCtr extends Controller
         ];
 
         return response($content);
+    }
+
+    public function access($plant_id,$line_id)
+    {
+        $role = session()->get('loggedData')['role'];
+
+            if($role != 'admin')
+            {
+                $access = AccessMaster::where('role',$role)
+                ->where('plant',$plant_id)
+                ->where('line',$line_id)
+                ->count();
+                
+                if($access == 0 ){   abort(403); }
+            }
     }
 }
