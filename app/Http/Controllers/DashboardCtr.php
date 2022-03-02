@@ -267,18 +267,18 @@ class DashboardCtr extends Controller
         });
 
 
-        dd(DispatchMaster::all()->toArray());
-        $productData = ProductMaster::where('material_code', $ITEM_CODE)->first(['product_id', 'barcode']);
-        $data = new DispatchMaster;
-        $data->sales_voucher = $SO_PO_NO;
-        // $data->product_id = $ITEM_NO;
-        $data->product_id = $productData->product_id;
-        $data->qty = $DISP_QTY;
-        $data->unit = $UOM;
-        $data->barcode = $productData->barcode;
-        $data->plant_id = $PLANT_CODE;
-        $data->line_id = 0;
-        $data->save();
+        
+        // $productData = ProductMaster::where('material_code', $ITEM_CODE)->first(['product_id', 'barcode']);
+        // $data = new DispatchMaster;
+        // $data->sales_voucher = $SO_PO_NO;
+        // // $data->product_id = $ITEM_NO;
+        // $data->product_id = $productData->product_id;
+        // $data->qty = $DISP_QTY;
+        // $data->unit = $UOM;
+        // $data->barcode = $productData->barcode;
+        // $data->plant_id = $PLANT_CODE;
+        // $data->line_id = 0;
+        // $data->save();
 
 
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\ProductCtr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccessController;
+use App\Http\Controllers\PoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +42,9 @@ Route::get('/', function () {
     }
 });
 
+Route::get('/demo', function () {
+    return view('demo');
+});
 
 Route::get('/packing-production/createVoucher', function () {
     Artisan::call('Production:Voucher');
@@ -57,6 +61,9 @@ Route::get('/getBarcode', function () {
 
 Route::get('/login', [LoginCtr::class, 'login'])->name('login');
 Route::post('/login', [LoginCtr::class, 'auth'])->name('login');
+
+//PUSH API
+Route::get('/push/po', [PoController::class, 'sapHeader'])->name('push.po');
 
 
 
