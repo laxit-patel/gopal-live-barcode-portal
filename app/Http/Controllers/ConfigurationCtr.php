@@ -17,7 +17,7 @@ class ConfigurationCtr extends Controller
     }
     public function save(Request $request)
     {
-        if (!empty(>$request->id)) {
+        if (!empty($request->id)) {
             $data = Configuration::where('configurations_id', $request->id)->first();
         } else {
             $data = new Configuration;

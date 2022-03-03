@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use App\Models\PackingProductionMaster;
 use App\Models\RawPackingMaster;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+Use App\Http\Controllers\PoController;
+
 
 class ProductionVoucher extends Command
 {
@@ -40,7 +43,12 @@ class ProductionVoucher extends Command
     public function handle()
     {
         $data = RawPackingMaster::where('status', '0')->get();
-        $voucherNo = (PackingProductionMaster::max('production_voucher') + 1);
+
+        $today = date('Ymd');
+        $max = PackingProductionMaster::select(DB::raw('max(SUBSTRING(`production_voucher`,-4)) as max'))->where('production_voucher','like', "$today%")->first();
+        $voucherNo = $today.str_pad(($max->max + 1),4,'0',STR_PAD_LEFT);
+
+        $this->info($voucherNo);
         foreach ($data as $key => $row) {
             if (empty($key)) {
                 $packingData = new PackingProductionMaster;
@@ -66,6 +74,11 @@ class ProductionVoucher extends Command
 
             RawPackingMaster::where('status', '0')->where('raw_packing_id', $row->raw_packing_id)->update(['status' => '1']);
         }
-        $this->info('Updated on packing production');
+        $this->info('Updated on packing production test');
+
+        //$this->sapHeader();
+
+        $po= new PoController;
+        $po->pushPO();
     }
 }

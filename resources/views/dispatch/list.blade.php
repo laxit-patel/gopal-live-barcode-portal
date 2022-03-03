@@ -73,7 +73,7 @@
                                     <td class="text-center ">{{$row->total }}</td>
                                     <td class="text-center ">
                                         
-                                        @if($row->plant_id == "")
+                                        @if($row->line_no == "")
                                         <button type="button" data-id="{{ $row->so_po_no }}" data-plant="{{ $row->plant_id }}" class="btn btn-sm btn-primary btn-hover-scale" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
                                             Map
                                         </button>

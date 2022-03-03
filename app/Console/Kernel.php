@@ -33,6 +33,7 @@ class Kernel extends ConsoleKernel
         $productionVoucher = $ConfigData->productionVoucher;
         if ($productionVoucher != 'Off' && !empty($productionVoucher)) {
             $schedule->command('Production:Voucher')->$productionVoucher();
+            Log::debug('Voucher_test');
         }
 
         $schedule->command('db:sync')->daily();

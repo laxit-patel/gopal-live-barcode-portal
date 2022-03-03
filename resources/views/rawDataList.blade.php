@@ -92,6 +92,7 @@
                     @if(!empty(Request::get('plant_id')) && !empty(Request::get('line_id')))
                             <table class="table g-5 font-weight-bolder table-bordered rounded align-middle table-sm   " id="displayData">
                                 <!--begin::Table head-->
+                                
                                 @if(isset($display_type) && $display_type == 'dispatch')
                                 <thead >
                                     <tr class='bg-light-primary fs-2 text-start text-gray-800 fw-bolder fs-7 text-uppercase gs-0'>

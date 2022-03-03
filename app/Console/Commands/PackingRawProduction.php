@@ -44,14 +44,16 @@ class PackingRawProduction extends Command
      */
     public function handle()
     {
+        ini_set('default_socket_timeout', 5);
+        set_time_limit(0);
         while (true) {
             $ConfigData = Configuration::first('rawPacking');
             $rawPacking = $ConfigData->rawPacking;
             if ($rawPacking != 'Off' && !empty($rawPacking)) {
                 
-                
 
-                $machineData = BarcodeMachineMaster::get();//echo '<pre>';print_r($machineData);exit;
+                $machineData = BarcodeMachineMaster::get();
+                //echo '<pre>';print_r($machineData);exit;
                 foreach ($machineData as $machine) {
 
 
@@ -61,10 +63,15 @@ class PackingRawProduction extends Command
                     $host = $machine->ip_address;
                     $port = $machine->port;
                     //socket_close($socket);
-                    set_time_limit(0);
+                    
                     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("Could not create socket\n");
+
                     $result = socket_connect($socket, $host, $port) or die("Could not bind to socket\n");
+
+                    //socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,array("sec"=>5,"usec"=>1000));
+                    //socket_set_nonblock($socket);
                     $input = socket_read($socket, 1024);
+
                     $barcode = trim($input);
                     
                     if (!empty($barcode)) {

@@ -81,8 +81,9 @@ class DashboardCtr extends Controller
 
                 $customer = DB::select("select * from order_masters as om 
                 join customer_master as cm 
-                on cm.customer_id = om.customer_id
+                on cm.customer_number = om.sold_to
                 where om.so_po_no = '{$order}'");
+                // dd($customer);
 
             } elseif ($machineData->type == 'packing') {
 
@@ -234,7 +235,7 @@ class DashboardCtr extends Controller
         $DISP_QTY = $request->DISP_QTY;
         $UOM = $request->UOM;
         $PLANT_CODE = $request->PLANT_CODE;
-
+// return $request->all();
         DB::transaction(function () use ($request) {
 
             OrderMaster::create([
@@ -247,7 +248,7 @@ class DashboardCtr extends Controller
                 'total' => $request->TOTAL_AMT
             ]);
 
-            foreach ($request->item as $items) {
+            foreach ($request->ITEM as $items) {
                 DispatchMaster::create([
                     'so_po_no' => $request->SO_PO_NO,
                     'sales_voucher' => $items['SO_NO'],
@@ -262,18 +263,18 @@ class DashboardCtr extends Controller
         });
 
 
-        dd(DispatchMaster::all()->toArray());
-        $productData = ProductMaster::where('material_code', $ITEM_CODE)->first(['product_id', 'barcode']);
+        //dd(DispatchMaster::all()->toArray());
+        /*$productData = ProductMaster::where('material_code', $ITEM_CODE)->first(['product_id', 'barcode']);
         $data = new DispatchMaster;
         $data->sales_voucher = $SO_PO_NO;
         // $data->product_id = $ITEM_NO;
-        $data->product_id = $productData->product_id;
+        $data->product_id = @$productData->product_id;
         $data->qty = $DISP_QTY;
         $data->unit = $UOM;
         $data->barcode = $productData->barcode;
         $data->plant_id = $PLANT_CODE;
         $data->line_id = 0;
-        $data->save();
+        $data->save();*/
 
 
 

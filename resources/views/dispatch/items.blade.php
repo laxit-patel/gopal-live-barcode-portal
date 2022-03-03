@@ -38,6 +38,13 @@
                 <!--end::Breadcrumb-->
             </div>
             <!--end::Page title-->
+            <!--begin::Actions-->
+                <div class="d-flex align-items-center py-2">
+                    <!--begin::Button-->
+                    <a href="{{ route('dispatch') }}"  class="btn btn-primary" >Dispatch List</a>
+                    <!--end::Button-->
+                </div>
+                <!--end::Actions-->
         </div>
         <!--end::Container-->
     </div>
@@ -47,6 +54,7 @@
         <!--begin::Container-->
         <div id="kt_content_container" class="container-xxl">
             <!--begin::Row-->
+            @include('layouts.success_message')
 
             <!--begin::Card-->
             <div class="card shadow-lg card-flush pt-3 mb-5 mb-lg-10">
@@ -62,8 +70,10 @@
                     <!--begin::Toolbar-->
                     <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
                         <!--begin::Add user-->
-                        <a href="" type="button" class="btn btn-success btn-hover-scale">
+                        @if($pendingLineItems > 0)
+                        <a href="{{ route('push.po.items',['order' => @$OrderDetails->so_po_no]) }}" type="button" class="btn btn-success btn-hover-scale">
                         <i class="fa fa-check"></i> Completed</a>
+                        @endif
                         <!--end::Add user-->
                     </div>
                     <!--end::Toolbar-->

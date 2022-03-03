@@ -57,7 +57,7 @@ class DispatchCtr extends Controller
         from dispatch_masters as dm join plant_masters as pm on pm.plant_id = dm.plant_id
         join order_masters as om on om.so_po_no = dm.so_po_no
         left join line_masters as lm on lm.plant_id = pm.plant_id
-        join product_masters as pms on pms.material_code = dm.product_id
+        left join product_masters as pms on pms.product_id = dm.product_id
         left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
         where pm.plant_name = '{$plant_code}' and dm.line_id = '{$line_id}' group by dm.barcode");
 
@@ -72,15 +72,18 @@ class DispatchCtr extends Controller
         from `raw_dispatch_masters` as rdm 
         join plant_masters as pl on pl.plant_id = rdm.plant_id 
         join line_masters as lm on lm.plant_id = rdm.plant_id 
-        join `product_masters` as pm on pm.material_code = `rdm`.`product_id` 
+        left join `product_masters` as pm on pm.product_id = `rdm`.`product_id` 
         left join dispatch_masters as dm on dm.barcode = rdm.barcode 
         where pl.plant_name = '{$plant_code}' 
         and dm.barcode IS null 
         and rdm.`line_id` = '{$line_id}'
         group by rdm.barcode;");
 
+
+        $pendingLineItems = DispatchMaster::where('so_po_no',$OrderDetails->so_po_no)->where('status','0')->count();
+
         
-        return view('dispatch.items',compact('lineItems','OrderDetails', 'nagative'));
+        return view('dispatch.items',compact('lineItems','OrderDetails', 'nagative','pendingLineItems'));
     }
 
     public function updateLine(Request $request)
@@ -117,7 +120,7 @@ class DispatchCtr extends Controller
         from dispatch_masters as dm join plant_masters as pm on pm.plant_id = dm.plant_id
         join order_masters as om on om.so_po_no = dm.so_po_no
         left join line_masters as lm on lm.plant_id = pm.plant_id
-        join product_masters as pms on pms.material_code = dm.product_id
+        join product_masters as pms on pms.product_id = dm.product_id
         left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
         where pm.plant_name = '{$plant_no}' and dm.line_id = '{$line_no}' group by dm.barcode");
 
@@ -132,7 +135,7 @@ class DispatchCtr extends Controller
         from `raw_dispatch_masters` as rdm 
         join plant_masters as pl on pl.plant_id = rdm.plant_id 
         join line_masters as lm on lm.plant_id = rdm.plant_id 
-        join `product_masters` as pm on pm.material_code = `rdm`.`product_id` 
+        join `product_masters` as pm on pm.product_id = `rdm`.`product_id` 
         left join dispatch_masters as dm on dm.barcode = rdm.barcode 
         where pl.plant_name = '{$plant_no}' 
         and dm.barcode IS null 

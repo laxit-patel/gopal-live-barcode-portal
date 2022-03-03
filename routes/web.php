@@ -8,6 +8,7 @@ use App\Http\Controllers\LineCtr;
 use App\Http\Controllers\LoginCtr;
 use App\Http\Controllers\PackingProductionCtr;
 use App\Http\Controllers\PlantCtr;
+use App\Http\Controllers\PoController;
 use App\Http\Controllers\ProductCtr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Route;
 //Laravel Cache clear route
 Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');
+    Artisan::call('config:cache');
     Artisan::call('route:clear');
     Artisan::call('config:clear');
     Artisan::call('view:clear');
@@ -40,6 +42,9 @@ Route::get('/', function () {
     }
 });
 
+//PUSH API
+Route::get('/push/po', [PoController::class, 'pushPO'])->name('push.po');
+Route::get('/push/po/items', [PoController::class, 'pushLineItems'])->name('push.po.items');
 
 Route::get('/display-data', [DashboardCtr::class, 'listdata'])->name('row.packing');
 Route::get('/display-data/get/{ajax?}/{no?}', [DashboardCtr::class, 'listdata']);
