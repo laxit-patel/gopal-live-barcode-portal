@@ -45,7 +45,9 @@
     <!--begin::Post-->
     <div class="post d-flex flex-column-fluid" id="kt_post">
         <!--begin::Container-->
+        
         <div id="kt_content_container" class="container-xxl">
+            @include('layouts.success_message')
             <!--begin::Row-->
             <div id="" class="card">
                 <div class="card-body p-4">
@@ -76,6 +78,9 @@
                                         @if($row->line_no == "")
                                         <button type="button" data-id="{{ $row->so_po_no }}" data-plant="{{ $row->plant_id }}" class="btn btn-sm btn-primary btn-hover-scale" data-bs-toggle="modal" data-bs-target="#kt_modal_1">
                                             Map
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger btn-hover-scale" onclick="deleteItem(this)" data-route="{{ route('dispatch.delete',['id' => $row->id]) }}">
+                                            Delete
                                         </button>
                                         @endif
                                         <a href="{{ route('dispatch.get.items',['order' => $row->so_po_no]) }}"  class="btn btn-sm btn-success btn-hover-scale" >
@@ -151,6 +156,7 @@
 <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/add.js"></script>
 <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/list/list.js"></script>
 <script src="{{ url('/theme') }}/assets/js/widgets.bundle.js"></script>
+<script src="{{ url('/theme') }}/assets/js/delete.js"></script>
 
 <script>
 

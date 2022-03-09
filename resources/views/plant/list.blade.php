@@ -217,8 +217,6 @@
                                     </th>
                                     <th class="min-w-125px">Plant Code</th>
                                     <th class="min-w-125px">Plant Name</th>
-                                    <th class="min-w-125px"></th>
-                                    <th class="min-w-125px"></th>
                                     <th class="min-w-125px">Created Date</th>
                                     <th class="text-end min-w-70px">Actions</th>
                                 </tr>
@@ -242,15 +240,7 @@
                                         <!--begin::Email=-->
                                         <td>{{ $plant->plant_name }}</td>
                                         <!--end::Email=-->
-                                        <!--begin::Company=-->
-                                        <td></td>
-                                        <!--end::Company=-->
-                                        <!--begin::Payment method=-->
-                                        <td data-filter="mastercard">
-                                            {{-- <img src="assets/media/svg/card-logos/mastercard.svg" class="w-35px me-3"
-                                            alt="" />**** 8389 --}}
-                                        </td>
-                                        <!--end::Payment method=-->
+                                        
                                         <!--begin::Date=-->
                                         <td>{{ $plant->created_at }}</td>
                                         <!--end::Date=-->
@@ -273,10 +263,10 @@
                                             <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4"
                                                 data-kt-menu="true">
                                                 <!--begin::Menu item-->
-                                                <div class="menu-item px-3">
+                                                {{-- <div class="menu-item px-3">
                                                     <a href="{{ route('plant.edit', ['id' => $plant->plant_id]) }}"
                                                         class="menu-link px-3">Edit</a>
-                                                </div>
+                                                </div> --}}
                                                 <!--end::Menu item-->
                                                 <!--begin::Menu item-->
                                                 <div class="menu-item px-3">

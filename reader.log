@@ -1,0 +1,8 @@
+WARNING:root:Log Started
+WARNING:root:Log Started
+WARNING:root:Log Started
+ERROR:tendo.singleton:Another instance is already running, quitting.
+WARNING:root:Already Running
+WARNING:root:Log Started
+WARNING:root:Log Started
+WARNING:root:Log Started

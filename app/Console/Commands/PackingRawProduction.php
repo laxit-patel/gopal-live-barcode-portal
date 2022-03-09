@@ -44,7 +44,7 @@ class PackingRawProduction extends Command
      */
     public function handle()
     {
-        ini_set('default_socket_timeout', 5);
+        ini_set('default_socket_timeout', 1);
         set_time_limit(0);
         while (true) {
             $ConfigData = Configuration::first('rawPacking');
@@ -89,14 +89,14 @@ class PackingRawProduction extends Command
                         } 
                         if ($machine->type == 'dispatch') {
 
-                            $dispatchData = ProductMaster::where('barcode', $barcode)->first('product_id');
+                            $dispatchData = ProductMaster::where('barcode', $barcode)->first('material_code');
                             if (!empty($dispatchData)) {
                                 $data = new RawDispatchMaster;
                                 $data->machine_id = $machine_id;
                                 $data->plant_id = $plant_id;
                                 $data->line_id = $line_id;
                                 $data->barcode = $barcode;
-                                $data->product_id =  $dispatchData->product_id;
+                                $data->product_id = $dispatchData->material_code;
                                 $data->save();
                             }
                         }

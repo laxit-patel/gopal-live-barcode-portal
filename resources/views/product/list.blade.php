@@ -142,9 +142,7 @@
                                         <th class="min-w-125px">Material Code</th>
                                         <th class="min-w-125px">Product Name</th>
                                         <th class="min-w-125px">Barcode</th>
-                                        <th class="min-w-125px"></th>
                                         <th class="min-w-125px">Created Date</th>
-                                        <th class="text-end min-w-70px">Actions</th>
                                     </tr>
                                     <!--end::Table row-->
                                 </thead>
@@ -169,21 +167,10 @@
                                             <!--begin::Company=-->
                                             <td>{{ $plant->barcode }}</td>
                                             <!--end::Company=-->
-                                            <!--begin::Payment method=-->
-                                            <td data-filter="mastercard">
-                                                {{-- <img src="assets/media/svg/card-logos/mastercard.svg" class="w-35px me-3"
-                                                alt="" />**** 8389 --}}
-                                            </td>
-                                            <!--end::Payment method=-->
                                             <!--begin::Date=-->
                                             <td>{{ $plant->created_at }}</td>
                                             <!--end::Date=-->
-                                            <!--begin::Action=-->
-                                            <td class="text-end">
-                                                
-                                                <!--end::Menu-->
-                                            </td>
-                                            <!--end::Action=-->
+                                            
                                         </tr>
                                     @endforeach
                                 </tbody>

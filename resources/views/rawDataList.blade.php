@@ -97,11 +97,11 @@
                                 <thead >
                                     <tr class='bg-light-primary fs-2 text-start text-gray-800 fw-bolder fs-7 text-uppercase gs-0'>
                                     <td class='text-end'>Customer Name</td>
-                                    <td colspan='' >{{$customer[0]->name}}  </td>
+                                    <td colspan='' >{{@$customer[0]->name}}  </td>
                                     <td></td>
                                     <td></td>
                                     <td class='text-end'>Customer Number</td>
-                                    <td colspan='' >{{ $customer[0]->customer_number }}</td>
+                                    <td colspan='' >{{ @$customer[0]->customer_number }}</td>
                                     </tr>
                                     <tr class='bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0'>
                                         <th class='text-center'>Product Code</th>
@@ -224,7 +224,7 @@
  
         $(document).ready(function() {
             var no = 0;
-             var lastid = parseInt('<?php echo count($productData)?$productData[0]->dispatch_id:0;?>');
+            var lastid = parseInt('<?php echo count($productData)?$productData[0]->dispatch_id:0;?>');
             var plant_id = '<?php echo Request::get("plant_id");?>';
             var line_id = '<?php echo Request::get("line_id");?>';
             if (plant_id != '' & line_id != '') {
@@ -248,7 +248,7 @@
 
                         }
                     })
-                }, 500);
+                }, 300);
             }
             // getBarcode();
 

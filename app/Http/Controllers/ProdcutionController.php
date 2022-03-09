@@ -14,8 +14,8 @@ class DispatchCtr extends Controller
 
     public function list()
     {
-        $lineData = LineMaster::where('occupied', 0)->orderby('line_name')->get(['line_id', 'plant_id', 'line_name']);
-        $plantData = PlantMaster::get(); //NEW code
+        $lineData = LineMaster::where('occupied',0)->orderby('line_name')->get(['line_id', 'plant_id', 'line_name']);
+        $plantData = PlantMaster::where('occupied',0)->get(); //NEW code
         // $plantData = PlantMaster::where('occupied',0)->join('barcode_machine_masters', 'barcode_machine_masters.plant_id', 'plant_masters.plant_id')->orderBy('plant_masters.plant_name')->get(); //old code
         $dispatchData = OrderMaster::leftJoin('plant_masters', 'order_masters.plant', 'plant_masters.plant_name')->get();
         return view('dispatch.list', compact('dispatchData', 'lineData', 'plantData'));
@@ -47,15 +47,19 @@ class DispatchCtr extends Controller
         $line_id = $OrderDetails->line_no;
         $plant_code = $OrderDetails->plant;
         $order_status = @$OrderDetails->status;
-        if ($order_status == 1) {
-            $q = 'and rd.status = 1';
-            $n = "and rdm.status = 1";
-        } else {
-            $q = 'and (rd.status IS null or rd.status = 0)';
-            $n = "and (rdm.status IS null or rdm.status = 0)";
-        }
+
         $nagative = '';
         if ($line_id) {
+            if ($order_status == 1) {
+                // echo 1 ;exit;
+                $q = 'and rd.status = 1';
+                $n = "and rdm.status = 1";
+            } else {
+                // echo 2;exit;
+                $q = 'and (rd.status IS null or rd.status = 0)';
+                $n = "and (rdm.status IS null or rdm.status = 0)";
+            }
+            // $q = $n = '';
             $lineItems = DB::select("select dm.*, 
                 pm.plant_name, 
                 lm.line_name, 
@@ -70,10 +74,12 @@ class DispatchCtr extends Controller
                 left join raw_dispatch_masters as rd on (rd.barcode = dm.barcode {$q})
                 where pm.plant_name = '{$plant_code}'
                 and dm.line_id = '{$line_id}'
+                
                 and dm.sales_voucher='{$OrderDetails->so_po_no}'
                 group by dm.barcode, dm.product_id;");
 
             if (@$order_status) {
+
                 $nagative = DB::select("select 
                 rdm.*,
                 pm.material_code,
@@ -103,7 +109,7 @@ class DispatchCtr extends Controller
             join plant_masters as pm on pm.plant_id = dm.plant_id
             join order_masters as om on om.so_po_no = dm.so_po_no
             left join product_masters as pms on pms.material_code = dm.product_id
-            left join raw_dispatch_masters as rd on (rd.barcode = dm.barcode {$q})
+            left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
             where pm.plant_name = '{$plant_code}'
             and dm.sales_voucher='{$OrderDetails->so_po_no}'
             group by dm.barcode, dm.product_id;");
@@ -124,11 +130,11 @@ class DispatchCtr extends Controller
 
         $plant = explode('|', $request->plant_id);
 
-        LineMaster::where('line_id', $request->line_id)->update([
+        LineMaster::where('line_id',$request->line_id)->update([
             'occupied' => 1
         ]); // occuoy line master
 
-        PlantMaster::where('plant_name', $plant[1])->update([
+        PlantMaster::where('plant_name',$plant[1])->update([
             'occupied' => 1
         ]); // occupy plant master
 
@@ -148,18 +154,18 @@ class DispatchCtr extends Controller
     {
         $OrderDetails = OrderMaster::where('so_po_no', $po)->first();
         $nagative = '';
-        $order_status = @$OrderDetails->status;
-
-        if ($order_status == 1) {
-            $q = 'and rd.status = 1';
-            $n = "and rdm.status = 1";
-        } else {
-            $q = 'and (rd.status IS null or rd.status = 0)';
-            $n = "and (rdm.status IS null or rdm.status = 0)";
-        }
-
         if ($line_no) {
+            $order_status = @$OrderDetails->status;
 
+            if ($order_status == 1) {
+                // echo 1 ;exit;
+                $q = 'and rd.status = 1';
+                $n = "and rdm.status = 1";
+            } else {
+                // echo 2;exit;
+                $q = 'and (rd.status IS null or rd.status = 0)';
+                $n = "and (rdm.status IS null or rdm.status = 0)";
+            }
             $pending = DB::select("select dm.*, 
             pm.plant_name, 
             lm.line_name, 
@@ -176,7 +182,7 @@ class DispatchCtr extends Controller
             and dm.line_id = '{$line_no}'
             and dm.sales_voucher='{$po}'
             group by dm.barcode, dm.product_id;");
-            
+            // echo '<pre>';print_r($pending);exit;
             if (@$pending[0]->status != 1) {
                 $nagative = DB::select("select 
                 rdm.*,
@@ -208,7 +214,7 @@ class DispatchCtr extends Controller
             join plant_masters as pm on pm.plant_id = dm.plant_id
             join order_masters as om on om.so_po_no = dm.so_po_no
             left join product_masters as pms on pms.material_code = dm.product_id
-            left join raw_dispatch_masters as rd on (rd.barcode = dm.barcode {$q})
+            left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
             where pm.plant_name = '{$plant_no}'
             and dm.sales_voucher='{$po}'
             group by dm.barcode, dm.product_id;");
@@ -246,21 +252,5 @@ class DispatchCtr extends Controller
         return response()->json($tr);
 
         return true;
-    }
-
-    public function delete($id)
-    {
-        $order = OrderMaster::find($id);
-        $items = DispatchMaster::where('so_po_no',$order->so_po_no)->get();
-
-        DB::transaction(function() use ($order,$items)
-        {
-            foreach($items as $item)
-            {
-                //DispatchMaster::dele
-            }
-        });
-
-        dd($items);
     }
 }

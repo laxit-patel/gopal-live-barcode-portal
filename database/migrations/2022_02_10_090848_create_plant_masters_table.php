@@ -17,6 +17,7 @@ return new class extends Migration
             $table->increments('plant_id');
             $table->string('plant_name');
             $table->integer('created_id');
+            $table->boolean('occupied')->default(0);
             $table->timestamps();
         });
     }
