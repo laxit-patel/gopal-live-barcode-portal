@@ -23,7 +23,7 @@ class LineCtr extends Controller
             $data = new LineMaster;
         }
         $data->plant_id = $request->plant_id;
-        $data->line_name = $request->line_name;
+        $data->line_name = strtoupper($request->line_name);
         $data->created_id = Session()->get('loggedData')['login_id'];
         $data->save();
         return redirect()->route('line')->with('message', 'Successfully saved.');

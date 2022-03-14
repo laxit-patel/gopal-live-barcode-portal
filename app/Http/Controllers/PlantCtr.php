@@ -20,7 +20,7 @@ class PlantCtr extends Controller
         } else {
             $data = new PlantMaster;
         }
-        $data->plant_name = $request->plant_name;
+        $data->plant_name = strtoupper($request->plant_name);
         $data->created_id = Session()->get('loggedData')['login_id'];
         $data->save();
         return redirect()->route('plant')->with('message', 'Successfully saved.');

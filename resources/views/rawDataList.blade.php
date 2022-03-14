@@ -21,22 +21,11 @@
     <link href="{{ url('/theme') }}/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
     <style>
         
-        thead th {
+        thead tr {
           position: sticky;
-          top: 0;
+          top: 10%;
         }
-        table {
-          border-collapse: collapse;        
-          width: 100%;
-        }
-        th,
-        td {
-          padding: 8px 15px;
-          border: 2px solid #529432;
-        }
-        th {
-          background: #ABDD93;
-        }
+
       </style>
 </head>
 <!--end::Head-->
@@ -54,6 +43,7 @@
                 <div class="content d-flex flex-column flex-column-fluid" style="padding: 0px;" id="kt_content">
                     <!--begin::Toolbar-->
                     @if($display_choice)
+                    @include('layouts.success_message')
                     <div class="toolbar d-flex flex-stack mb-3 mb-lg-5" id="kt_toolbar">
                         <!--begin::Container-->
                         <div id="kt_toolbar_container" class="container-fluid d-flex flex-stack flex-wrap">
@@ -90,20 +80,24 @@
                     <!--end::Toolbar-->
                     <!--begin::Post-->
                     @if(!empty(Request::get('plant_id')) && !empty(Request::get('line_id')))
-                            <table class="table g-5 font-weight-bolder table-bordered rounded align-middle table-sm   " id="displayData">
+                            <table class="table g-3 font-weight-bolder table-bordered border rounded align-middle table-sm  " id="displayData">
                                 <!--begin::Table head-->
                                 
                                 @if(isset($display_type) && $display_type == 'dispatch')
-                                <thead >
-                                    <tr class='bg-light-primary fs-2 text-start text-gray-800 fw-bolder fs-7 text-uppercase gs-0'>
-                                    <td class='text-end'>Customer Name</td>
-                                    <td colspan='' >{{@$customer[0]->name}}  </td>
-                                    <td></td>
-                                    <td></td>
-                                    <td class='text-end'>Customer Number</td>
-                                    <td colspan='' >{{ @$customer[0]->customer_number }}</td>
+                                <thead>
+                                    <tr class='bg-primary fs-2 text-start text-black fw-bolder fs-7 text-uppercase gs-0'>
+                                        <td class='text-start'>SO PO No.</td>
+                                        <td>{{$order}}</td>
+                                        <td class='text-start'>Customer Name</td>
+                                        <td colspan='' >{{@$customer[0]->name}}  </td>
+                                        <td class='text-start'>Customer Number</td>
+                                        <td colspan='' >{{ @$customer[0]->customer_number }}</td>
+                                        
                                     </tr>
-                                    <tr class='bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0'>
+                                </thead>
+                                <thead >
+                                    
+                                    <tr class='bg-primary fs-2 text-start text-black fw-bolder fs-7 text-uppercase gs-0 border-bottom border-dark'>
                                         <th class='text-center'>Product Code</th>
                                         <th >Product Name</th>
                                         <th >Barcode</th>
@@ -115,7 +109,7 @@
                                 @else
                                 <thead>
                                     <!--begin::Table row-->
-                                    <tr class="bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0">
+                                    <tr class="bg-primary fs-2 text-start text-black fw-bolder fs-7 text-uppercase gs-0 border-bottom border-dark">
                                         <th class="text-center">Product Code</th>
                                         <th class="">Product Name</th>
                                         <th class="">Barcode</th>
@@ -132,11 +126,10 @@
                                     @if(isset($display_type) && $display_type == 'dispatch')
 
                                     
-
+                                    @if($productData)
                                     @foreach($productData as $k=>$product)
-                                    
-                                    <tr class="fs-2 fw-bold text-gray-700">
-                                        <td class="text-center">{{$product->product_id}}</td>
+                                    <tr class="fs-2 fw-bold text-gray-800 border-bottom border-warning ">
+                                        <td class="text-center"><?= (@$product->product_id) ? $product->product_id : $product->material_code ?></td>
                                         <td class="">{{$product->description}}</td>
                                         <td class="">{{$product->barcode}}</td>
                                         <td class="text-center fw-boldest">{{$product->qty}}</td>
@@ -144,12 +137,13 @@
                                         <td class="text-center fw-boldest">{{$product->pending}}</td>
                                     </tr>
                                     @endforeach
+                                    @endif
 
-                                    @if($pending)
+                                    {{-- @if($pending)
                                     @foreach ($pending as $key => $row)
                             
                                         <tr class='fs-2 text-gray-700 fw-bold bg-light-danger'>
-                                        <td class='text-center '>{{$row->product_id}}</td>
+                                        <td class='text-center '>{{($row->product_id) ? $row->product_id:$row->product_id}}</td>
                                         <td>{{$row->description}}</td>
                                         <td>{{$row->barcode}}</td>
                                         <td class='text-center fw-boldest fs-2'>{{$row->qty}}</td>
@@ -157,11 +151,11 @@
                                         <td class='text-center fw-boldest fs-2'>{{$row->pending}}</td>
                                         </tr>
                                     @endforeach
-                                    @endif
+                                    @endif --}}
 
                                     @elseif( isset($display_type) && $display_type == 'packing')
                                     @foreach($productData as $k=>$product)
-                                    <tr class="fs-2 fw-bold text-gray-700">
+                                    <tr class="fs-2 fw-bold text-gray-800 border-bottom border-warning border-bottom-dashed">
                                         <td class="text-center">{{$product->material_code}}</td>
                                         <td class="">{{$product->description}}</td>
                                         <td class="">{{$product->barcode}}</td>
@@ -217,38 +211,36 @@
     <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/add.js"></script>
     <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/list/list.js"></script>
     <script src="{{ url('/theme') }}/assets/js/widgets.bundle.js"></script>
-    {{-- <script src="{{ url('/theme') }}/assets/js/custom/widgets.js"></script> --}}
-    {{-- <script src="{{ url('/theme') }}/assets/js/custom/utilities/modals/users-search.js"></script> --}}
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script>
- 
+        
+        $('.pCount').html(<?=$gtotal?>);
         $(document).ready(function() {
+
             var no = 0;
-            var lastid = parseInt('<?php echo count($productData)?$productData[0]->dispatch_id:0;?>');
+            var lastid = parseInt('<?php echo 0;?>');
             var plant_id = '<?php echo Request::get("plant_id");?>';
             var line_id = '<?php echo Request::get("line_id");?>';
             if (plant_id != '' & line_id != '') {
                 setInterval(function() {
                     $.ajax({
-                        url: baseUrl + '/display-data/get/yes/' + lastid
-                        , type: 'GET'
-                        , data: {
-                            'plant_id': plant_id
-                            , 'line_id': line_id
-                        }
-                        , dataType: 'json'
-                        , success: function(response) {
+                        url: baseUrl + '/display-data/get/yes/' + lastid,
+                        type: 'GET', 
+                        data: {
+                            'plant_id': plant_id, 'line_id': line_id
+                        },
+                        dataType: 'json',
+                        success: function(response) {
                              //alert(response);
                             if (response) {
-                                $('#displayData').html(response);
+                                console.log(response.data);
+                                $('#displayData').html(response.html);
+                                $('.pCount').html(response.gtotal);
                                 // $('#totalRecordAdded').html(parseInt($('#totalRecordAdded').html()) + parseInt(response.tasks.length));
                             }
-                        }
-                        , error: function(err) {
-
-                        }
+                        },
                     })
-                }, 300);
+                }, 1000000);
             }
             // getBarcode();
 
@@ -258,14 +250,14 @@
             return false;
             var pageType = '/<?php echo $pageType;?>';
             $.ajax({
-                url: baseUrl + pageType + '/getBarcode'
-                , type: 'GET'
-                , dataType: 'json'
-                , success: function() {
+                url: baseUrl + pageType + '/getBarcode',
+                type: 'GET',
+                dataType: 'json',
+                success: function() {
                     // console.log(response);
                     getBarcode();
-                }
-                , error: function(err) {
+                },
+                error: function(err) {
                     console.log('Error: ' + err);
                     getBarcode();
                 }

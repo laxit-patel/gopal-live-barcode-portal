@@ -43,7 +43,7 @@ class ProductionVoucher extends Command
     public function handle()
     {
         $data = RawPackingMaster::where('status', '0')->get();
-
+        //echo '<pre>';print_r($data);exit;
         $today = date('Ymd');
         $max = PackingProductionMaster::select(DB::raw('max(SUBSTRING(`production_voucher`,-4)) as max'))->where('production_voucher','like', "$today%")->first();
         $voucherNo = $today.str_pad(($max->max + 1),4,'0',STR_PAD_LEFT);
@@ -56,8 +56,7 @@ class ProductionVoucher extends Command
                 $packingData = PackingProductionMaster::where('production_voucher', $voucherNo)
                     ->where('plant_id', $row->plant_id)
                     ->where('line_id', $row->line_id)
-                    ->where('barcode', $row->barcode)
-                    ->where('product_id', $row->product_id)
+                    ->where('barcode', $row->barcode)                   
                     ->first();
                 if (empty($packingData)) {
                     $packingData = new PackingProductionMaster;
@@ -70,6 +69,7 @@ class ProductionVoucher extends Command
             $packingData->product_id = $row->product_id;
             $packingData->qty = ($packingData->qty ? $packingData->qty : 0) + 1;
             $packingData->unit = 'box';
+            //echo '<pre>';print_r($packingData);exit;
             $packingData->save();
 
             RawPackingMaster::where('status', '0')->where('raw_packing_id', $row->raw_packing_id)->update(['status' => '1']);
@@ -78,7 +78,7 @@ class ProductionVoucher extends Command
 
         //$this->sapHeader();
 
-        $po= new PoController;
-        $po->pushPO();
+        // $po= new PoController;
+        // $po->pushPO();
     }
 }

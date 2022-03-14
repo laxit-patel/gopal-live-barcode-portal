@@ -10,6 +10,7 @@ use App\Http\Controllers\PackingProductionCtr;
 use App\Http\Controllers\PlantCtr;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\ProductCtr;
+use App\Http\Controllers\DispatchReader;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -65,8 +66,6 @@ Route::get('/getBarcode', function () {
 Route::get('/login', [LoginCtr::class, 'login'])->name('login');
 Route::post('/login', [LoginCtr::class, 'auth'])->name('login');
 
-
-
 Route::group(['middleware' => 'CheckLogin'], function ($router) {
     Route::get('/login/list', [LoginCtr::class, 'list'])->name('login.list');
     Route::get('/login/form/{id?}', [LoginCtr::class, 'form'])->name('login.form');
@@ -93,7 +92,8 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
 
     Route::get('/product', [ProductCtr::class, 'list'])->name('product');
 
-    Route::get('/production', [DispatchCtr::class, 'list'])->name('production');
+    Route::get('/production', [DispatchCtr::class, 'productionList'])->name('production');
+    Route::get('/production/item', [DispatchCtr::class, 'productionItem'])->name('production.item');
 
     Route::get('/dispatch', [DispatchCtr::class, 'list'])->name('dispatch');
     Route::post('/dispatch/update', [DispatchCtr::class, 'update'])->name('dispatch.update');
@@ -102,6 +102,9 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
     Route::get('/dispatch/delete/{id}', [DispatchCtr::class, 'delete'])->name('dispatch.delete');
     Route::get('/dispatch/get/pending/{line_no}/{plant}/{po}', [DispatchCtr::class, 'getPendingItems'])->name('dispatch.get.pending');
 
+    //dispatch individual ip reader
+    Route::get('/dispatch/read/{so}', [DispatchReader::class, 'start'])->name('dispatch.read');
+    Route::get('/dispatch/read/stop/{so}', [DispatchReader::class, 'stop'])->name('dispatch.read.stop');
 
     Route::get('/configuration', [ConfigurationCtr::class, 'list'])->name('configuration');
     Route::post('/configuration', [ConfigurationCtr::class, 'save'])->name('configuration');
@@ -121,3 +124,15 @@ Route::get('/logout', function () {
     session()->forget('loggedData');
     return redirect()->route('login')->with('success', 'Logout sucessfully');
 })->name('logout');
+
+Route::get('/bat', function () {
+    echo "trying to start";
+    
+    pclose(popen("start /B c:\batfile\start.bat", "r")); 
+    // pclose(popen("start /B C:\batfile\start.bat", "r")); die();
+    // system("START /B c:\batfile\start.bat");
+    // exec("c:\WINDOWS\system32\cmd.exe /c START c:\batfile\start.bat");
+    echo "<br>started";
+});
+
+

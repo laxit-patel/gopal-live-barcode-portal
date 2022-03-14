@@ -168,7 +168,7 @@
                                             <td>{{ $plant->barcode }}</td>
                                             <!--end::Company=-->
                                             <!--begin::Date=-->
-                                            <td>{{ $plant->created_at }}</td>
+                                            <td>{{ $plant->updated_at }}</td>
                                             <!--end::Date=-->
                                             
                                         </tr>

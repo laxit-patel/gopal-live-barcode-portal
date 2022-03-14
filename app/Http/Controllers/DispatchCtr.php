@@ -6,8 +6,10 @@ use App\Models\DispatchMaster;
 use App\Models\LineMaster;
 use App\Models\OrderMaster;
 use App\Models\PlantMaster;
+use App\Models\ProcessMaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 
 class DispatchCtr extends Controller
 {
@@ -17,8 +19,46 @@ class DispatchCtr extends Controller
         $lineData = LineMaster::where('occupied', 0)->orderby('line_name')->get(['line_id', 'plant_id', 'line_name']);
         $plantData = PlantMaster::get(); //NEW code
         // $plantData = PlantMaster::where('occupied',0)->join('barcode_machine_masters', 'barcode_machine_masters.plant_id', 'plant_masters.plant_id')->orderBy('plant_masters.plant_name')->get(); //old code
-        $dispatchData = OrderMaster::leftJoin('plant_masters', 'order_masters.plant', 'plant_masters.plant_name')->get();
+        $dispatchData = OrderMaster::leftJoin('plant_masters', 'order_masters.plant', 'plant_masters.plant_name')->where('status',0)->get();
         return view('dispatch.list', compact('dispatchData', 'lineData', 'plantData'));
+    }
+
+    public function productionList(Request $request)
+    {
+        if($request->ajax())
+        {
+            $data = DB::select("SELECT 
+            production_voucher as voucher, 
+            STR_TO_DATE(SUBSTRING(`production_voucher`,1,8), '%Y %m %d') as date 
+            FROM `packing_production_masters` 
+            group by voucher 
+            order by date;"); //new code
+    
+            return DataTables::of($data)->toJson();
+        }
+        return view('production.list', );
+    }
+
+    public function productionItem(Request $request)
+    {
+        dd($request->query);
+        
+        $data = DB::select("SELECT 
+        ppm.packing_production_id as id,
+        ppm.production_voucher as voucher,
+        pm.plant_name,
+        pm.plant_id,
+        lm.line_id,
+        lm.line_name,
+        ppm.qty,
+        ppm.barcode,
+        prm.description as product
+        FROM `packing_production_masters` ppm 
+        left join product_masters prm on prm.barcode = ppm.barcode
+        left join plant_masters pm on pm.plant_id = ppm.plant_id
+        left join line_masters lm on lm.line_id = ppm.line_id;"); //new code
+
+        return DataTables::of($data)->toJson();
     }
 
     public function update(Request $request)
@@ -41,11 +81,12 @@ class DispatchCtr extends Controller
                 'order_masters.sales_org',
                 'order_masters.dist_chan',
                 'order_masters.total',
-            )
+                'line_masters.line_name'
+            )->leftjoin('line_masters','line_masters.line_id','order_masters.line_no')
             ->where('so_po_no', $order)->first();
 
-        $line_id = $OrderDetails->line_no;
-        $plant_code = $OrderDetails->plant;
+        $line_id = @$OrderDetails->line_no;
+        $plant_code = @$OrderDetails->plant;
         $order_status = @$OrderDetails->status;
         if ($order_status == 1) {
             $q = 'and rd.status = 1';
@@ -65,15 +106,14 @@ class DispatchCtr extends Controller
                 from dispatch_masters as dm 
                 join plant_masters as pm on pm.plant_id = dm.plant_id
                 join order_masters as om on om.so_po_no = dm.so_po_no
-                left join line_masters as lm on lm.line_id = dm.line_id
+                join line_masters as lm on lm.line_id = dm.line_id
                 left join product_masters as pms on pms.material_code = dm.product_id
                 left join raw_dispatch_masters as rd on (rd.barcode = dm.barcode {$q})
                 where pm.plant_name = '{$plant_code}'
                 and dm.line_id = '{$line_id}'
                 and dm.sales_voucher='{$OrderDetails->so_po_no}'
                 group by dm.barcode, dm.product_id;");
-
-            if (@$order_status) {
+            if ($order_status==0) {
                 $nagative = DB::select("select 
                 rdm.*,
                 pm.material_code,
@@ -89,29 +129,31 @@ class DispatchCtr extends Controller
                 left join `product_masters` as pm on pm.barcode = `rdm`.`barcode`
                 where pl.plant_name = '{$plant_code}'
                 {$n}
-                and rdm.barcode not IN (select barcode from dispatch_masters where sales_voucher = '{$OrderDetails->so_po_no}')
+                and rdm.barcode not IN (select barcode from dispatch_masters where sales_voucher = '{$OrderDetails->so_po_no}' and line_id = '{$line_id}' and plant_id = rdm.plant_id)
                 and rdm.`line_id` = '{$line_id}'
                 group by rdm.barcode, rdm.product_id;");
             }
         } else {
             $lineItems = DB::select("select dm.*, 
             pm.plant_name,
-            (dm.qty - count(rd.barcode)) as pending, 
+            dm.qty as pending, 
             pms.description ,
-            count(rd.barcode) as countQty
+            0 as countQty
             from dispatch_masters as dm 
             join plant_masters as pm on pm.plant_id = dm.plant_id
             join order_masters as om on om.so_po_no = dm.so_po_no
             left join product_masters as pms on pms.material_code = dm.product_id
-            left join raw_dispatch_masters as rd on (rd.barcode = dm.barcode {$q})
+           
             where pm.plant_name = '{$plant_code}'
             and dm.sales_voucher='{$OrderDetails->so_po_no}'
             group by dm.barcode, dm.product_id;");
         }
 
         $pendingLineItems = DispatchMaster::where('so_po_no', $OrderDetails->so_po_no)->where('status', '0')->count();
-
-        return view('dispatch.items', compact('lineItems', 'OrderDetails', 'nagative', 'pendingLineItems'));
+        
+        $processing = ProcessMaster::where('so_po_no', $order)->get()->first();
+        
+        return view('dispatch.items', compact('lineItems', 'OrderDetails', 'nagative', 'pendingLineItems','processing'));
     }
 
     public function updateLine(Request $request)
@@ -169,7 +211,7 @@ class DispatchCtr extends Controller
             from dispatch_masters as dm 
             join plant_masters as pm on pm.plant_id = dm.plant_id
             join order_masters as om on om.so_po_no = dm.so_po_no
-            left join line_masters as lm on lm.line_id = dm.line_id
+            join line_masters as lm on lm.line_id = dm.line_id
             left join product_masters as pms on pms.material_code = dm.product_id
             left join raw_dispatch_masters as rd on (rd.barcode = dm.barcode {$q})
             where pm.plant_name = '{$plant_no}'
@@ -193,7 +235,7 @@ class DispatchCtr extends Controller
                 left join `product_masters` as pm on pm.barcode = `rdm`.`barcode` 
                 where pl.plant_name = '{$plant_no}'
                 {$n}
-                and rdm.barcode not IN (select barcode from dispatch_masters where sales_voucher = '{$po}')
+                and rdm.barcode not IN (select barcode from dispatch_masters where sales_voucher = '{$po}' and line_id = '{$line_no}' and plant_id = rdm.plant_id)
                 and rdm.`line_id` = '{$line_no}'
                 group by rdm.barcode, rdm.product_id;");
             }
@@ -214,9 +256,10 @@ class DispatchCtr extends Controller
             group by dm.barcode, dm.product_id;");
         }
 
+        $oCount = 0;
         $tr = '';
         foreach ($pending as $key => $row) {
-            $key++;
+            $oCount += $row->countQty;
             $tr .= "<tr class=' '>
             <td class='text-left '>{$row->product_id}</td>
             <td class='text-left '>{$row->description}</td>
@@ -229,6 +272,7 @@ class DispatchCtr extends Controller
         }
         if ($nagative) {
             foreach ($nagative as $key => $row) {
+                $oCount += $row->countQty;
                 $tr .=
                     "<tr class='bg-light-danger '>
             
@@ -242,8 +286,9 @@ class DispatchCtr extends Controller
             </tr>";
             }
         }
-
-        return response()->json($tr);
+        $data['html'] = $tr;
+        $data['count'] = $oCount;
+        return response()->json($data);
 
         return true;
     }
@@ -251,16 +296,8 @@ class DispatchCtr extends Controller
     public function delete($id)
     {
         $order = OrderMaster::find($id);
-        $items = DispatchMaster::where('so_po_no',$order->so_po_no)->get();
-
-        DB::transaction(function() use ($order,$items)
-        {
-            foreach($items as $item)
-            {
-                //DispatchMaster::dele
-            }
-        });
-
-        dd($items);
+        OrderMaster::where('id',$id)->delete();
+        DispatchMaster::where('order_id',$id)->delete();
+        return redirect()->back()->with('success','Order Deleted With Line Items');
     }
 }

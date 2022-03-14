@@ -62,22 +62,39 @@
                 <div class="card-header">
                     <!--begin::Card title-->
                     <div class="card-title">
-                        <h2 class="fw-bolder">Order Details</h2>
+                        <h2 class="fw-bolder">Order Details </h2>&nbsp&nbsp<h5>(Total Box - <span id='count'>0</span>)</h5>
                     </div>
                     <!--begin::Card title-->
                     <!--begin::Card toolbar-->
                 <div class="card-toolbar">
                     <!--begin::Toolbar-->
                     <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
+
+                        @if ($OrderDetails->line_no)
+                            @if (@$processing->status)
+                                @if (@$processing->status == 1 && @$processing->status == 2)
+                                loading
+                                @else
+                                <a href="{{ route('dispatch.read.stop',[
+                                    'so' => @$OrderDetails->so_po_no,   
+                                    ]) }}" type="button" class="btn btn-danger btn-hover-scale me-3">Stop</a>
+                                @endif
+                            @else
+                            <a href="{{ route('dispatch.read',[
+                                'so' => @$OrderDetails->so_po_no,
+                                ]) }}" type="button" class="btn btn-primary btn-hover-scale me-3">Start</a>
+                            @endif
+                        @endif
+
                         <!--begin::Add user-->
-                        {{-- @if($pendingLineItems > 0) --}}
+                        @if($pendingLineItems > 0)
                         <a href="{{ route('push.po.items',[
                             'order' => @$OrderDetails->so_po_no,
                             'plant' => @$OrderDetails->plant,
                             'line' => @$OrderDetails->line_no,
                             ]) }}" type="button" class="btn btn-success btn-hover-scale">
                         <i class="fa fa-check"></i> Completed</a>
-                        {{-- @endif --}}
+                        @endif
                         <!--end::Add user-->
                     </div>
                     <!--end::Toolbar-->
@@ -105,7 +122,7 @@
                                 <td>{{ @$OrderDetails->so_po_no }}</td>
                                 <td>{{ @$OrderDetails->po_no }}</td>
                                 <td>{{ @$OrderDetails->plant }}</td>
-                                <td>{{ @$OrderDetails->line_no }}</td>
+                                <td>{{ @$OrderDetails->line_name }}</td>
                                 <td>{{ @$OrderDetails->sales_org }}</td>
                                 <td>{{ @$OrderDetails->dist_chan }}</td>
                                 <td>{{ @$OrderDetails->total }}</td>
@@ -139,8 +156,9 @@
                             <!--end::Table head-->
                             <!--begin::Table body-->
                             <tbody id="displayData">
+                                <?php $aa = 0;?>
                                 @foreach ($lineItems as $k=>$item)
-                                <?php //echo '<pre>';print_r($item);exit;?>
+                                <?php $aa += ($item->read_qty) ? $item->read_qty : $item->countQty; ?>
                                 <tr>
                                     <td class="text-left ">{{$item->product_id }}</td>
                                     <td class="text-left ">{{$item->description }}</td>
@@ -151,9 +169,10 @@
                                     <td class="text-center ">{{ ($item->read_qty) ? ($item->qty - $item->read_qty) : $item->pending }}</td>
                                 </tr>
                                 @endforeach
+                                
                                 @if($nagative)
                                     @foreach ($nagative as $key => $row)
-                                        
+                                    
                                         <tr class="bg-light-danger">
                                         <td class=' '>{{$row->material_code}}</td>
                                         <td>{{$row->description}}</td>
@@ -162,9 +181,10 @@
                                         <td class='text-center '>{{$row->qty}}</td>
                                         <td class='text-center '>{{$row->countQty}}</td>
                                         <td class='text-center '>{{$row->pending}}</td>
+                                        <td class='text-center '><?php echo  $row->countQty; ?></td>
                                         </tr>
                                     @endforeach
-                                    @endif
+                                @endif
                             </tbody>
                             <!--end::Table body-->
                         </table>
@@ -186,6 +206,7 @@
 <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/add.js"></script>
 <script src="{{ url('/theme') }}/assets/js/custom/apps/customers/list/list.js"></script>
 <script src="{{ url('/theme') }}/assets/js/widgets.bundle.js"></script>
+<script src="{{ url('/theme') }}/assets/js/delete.js"></script>
 
 <script>
      var baseUrl = '{{ url("/") }}';
@@ -194,6 +215,7 @@
      var po = '{{ @$OrderDetails->so_po_no }}';
     
     $(document).ready(function() {
+        $('#count').html(<?=$aa?>);
         <?php if(@$lineItems[0]->status == 0 ){?>
         setInterval(function() {
                 $.ajax({
@@ -203,13 +225,11 @@
                     , success: function(response) {
                             //alert(response);
                         if (response) {
-                            $('#displayData').html(response);
+                            $('#displayData').html(response.html);
+                            $('#count').html(response.count);
                             // $('#totalRecordAdded').html(parseInt($('#totalRecordAdded').html()) + parseInt(response.tasks.length));
                         }
-                    }
-                    , error: function(err) {
-
-                    }
+                    },
                 })
             }, 500);
             <?php }?>

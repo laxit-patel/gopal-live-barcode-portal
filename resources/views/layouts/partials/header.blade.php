@@ -22,16 +22,28 @@
                 <img alt="Logo" src="{{ asset('theme/assets/media/logos/favicon.png') }}" class="h-25px h-lg-30px d-none d-md-block" />
                 <img alt="Logo" src="{{ asset('theme/assets/media/logos/favicon.png') }}" class="h-25px d-block d-md-none" />
             </a>
-            `
+            @if( isset($display_choice) && !$display_choice && Route::currentRouteName()=='row.packing')
+            <ol class="breadcrumb breadcrumb-line text-white ms-5 fs-1 fw-bold">
+                <li class="breadcrumb-item pe-3"><a  class="pe-3 text-white">{{ @$productData[0]->plant_name }}</a></li>
+                <li class="breadcrumb-item pe-3"><a  class="pe-3 text-white">{{ @$productData[0]->line_name }}</a></li>
+            </ol>
+            @endif
             <!--end::Logo-->
         </div>
         <!--end::Brand-->
         <div class="d-flex align-items-center me-2 me-lg-4">
+            @if( isset($display_choice) && !$display_choice && Route::currentRouteName()=='row.packing')
+            <ol class="breadcrumb breadcrumb-line text-danger ms-5 fs-1 fw-bold">
+                <li class="breadcrumb-item pe-3"><a class="pe-3 text-danger"><b>TOTAL BOX</b></a></li>
+                <li class="breadcrumb-item pe-3"><a class="pe-3 text-danger pCount">0</a></li>
+            </ol>
+            @endif
+
             @if (Session()->has('loggedData'))
             @if(Route::currentRouteName()=='row.packing')
             <a href="{{ route('dashboard') }}" class="btn btn-primary border-0 px-3  mx-5 px-lg-6">Home</a>
             @else
-            <a href="{{ route('row.packing') }}" class="btn btn-primary border-0 px-3 px-lg-6 mx-5">Display Data</a>
+            <a href="{{ route('row.packing') }}" target="_blank" class="btn btn-primary border-0 px-3 px-lg-6 mx-5">Display Data</a>
             @endif
             <a href="{{ route('logout') }}" class="btn btn-success border-0 px-3 px-lg-6">Logout</a>
             @else
