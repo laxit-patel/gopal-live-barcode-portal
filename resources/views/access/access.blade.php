@@ -49,7 +49,7 @@
             </div>
             <!--end::Container-->
         </div>
-        <!--end::Toolbar-->
+        <!--end::Toolbar--> 
         <!--begin::Post-->
         <div class="post d-flex flex-column-fluid" id="kt_post">
             <!--begin::Container-->

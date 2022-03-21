@@ -240,6 +240,12 @@ class DashboardCtr extends Controller
         $UOM = $request->UOM;
         $PLANT_CODE = $request->PLANT_CODE;
 
+        try {
+            //code...
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+
         DB::transaction(function () use ($request) {
 
             OrderMaster::create([
@@ -252,7 +258,7 @@ class DashboardCtr extends Controller
                 'total' => $request->TOTAL_AMT
             ]);
 
-            foreach ($request->item as $items) {
+            foreach ($request->ITEM as $items) {
                 DispatchMaster::create([
                     'so_po_no' => $request->SO_PO_NO,
                     'sales_voucher' => $items['SO_NO'],

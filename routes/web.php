@@ -42,12 +42,8 @@ Route::get('/', function () {
     }
 });
 
-Route::get('/demo', function () {
-    return view('demo');
-});
-
 Route::get('/packing-production/createVoucher', function () {
-    Artisan::call('Production:Voucher');
+    Artisan::call('Productionpush:Voucher');
 });
 Route::get('/getBarcode', function () {
     Artisan::call('Production:RawPacking');
@@ -63,7 +59,7 @@ Route::get('/login', [LoginCtr::class, 'login'])->name('login');
 Route::post('/login', [LoginCtr::class, 'auth'])->name('login');
 
 //PUSH API
-Route::get('/push/po', [PoController::class, 'sapHeader'])->name('push.po');
+Route::get('/push/po', [PoController::class, 'pushPO'])->name('push.po');
 
 
 
