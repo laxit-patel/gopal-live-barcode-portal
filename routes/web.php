@@ -28,6 +28,7 @@ use App\Http\Controllers\PoController;
 //Laravel Cache clear route
 Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');
+    Artisan::call('config:cache');
     Artisan::call('route:clear');
     Artisan::call('config:clear');
     Artisan::call('view:clear');
@@ -41,6 +42,13 @@ Route::get('/', function () {
         return redirect()->route('row.packing');
     }
 });
+
+//PUSH API
+Route::get('/push/po', [PoController::class, 'pushPO'])->name('push.po');
+Route::get('/push/po/items', [PoController::class, 'pushLineItems'])->name('push.po.items');
+
+Route::get('/display-data', [DashboardCtr::class, 'listdata'])->name('row.packing');
+Route::get('/display-data/get/{ajax?}/{no?}', [DashboardCtr::class, 'listdata']);
 
 Route::get('/packing-production/createVoucher', function () {
     Artisan::call('Productionpush:Voucher');
@@ -89,10 +97,13 @@ Route::group(['middleware' => 'CheckLogin'], function ($router) {
 
     Route::get('/product', [ProductCtr::class, 'list'])->name('product');
 
+    Route::get('/production', [DispatchCtr::class, 'list'])->name('production');
+
     Route::get('/dispatch', [DispatchCtr::class, 'list'])->name('dispatch');
     Route::post('/dispatch/update', [DispatchCtr::class, 'update'])->name('dispatch.update');
     Route::post('/dispatch/update/line', [DispatchCtr::class, 'updateLine'])->name('dispatch.update.line');
     Route::get('/dispatch/get/items/{order}', [DispatchCtr::class, 'getLineItems'])->name('dispatch.get.items');
+    Route::get('/dispatch/delete/{id}', [DispatchCtr::class, 'delete'])->name('dispatch.delete');
     Route::get('/dispatch/get/pending/{line_no}/{plant}/{po}', [DispatchCtr::class, 'getPendingItems'])->name('dispatch.get.pending');
 
 

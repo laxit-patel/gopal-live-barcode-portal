@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use App\Models\PackingProductionMaster;
 use App\Models\RawPackingMaster;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+Use App\Http\Controllers\PoController;
+
 
 class ProductionVoucher extends Command
 {
@@ -40,7 +43,12 @@ class ProductionVoucher extends Command
     public function handle()
     {
         $data = RawPackingMaster::where('status', '0')->get();
-        $voucherNo = (PackingProductionMaster::max('production_voucher') + 1);
+
+        $today = date('Ymd');
+        $max = PackingProductionMaster::select(DB::raw('max(SUBSTRING(`production_voucher`,-4)) as max'))->where('production_voucher','like', "$today%")->first();
+        $voucherNo = $today.str_pad(($max->max + 1),4,'0',STR_PAD_LEFT);
+
+        $this->info($voucherNo);
         foreach ($data as $key => $row) {
             if (empty($key)) {
                 $packingData = new PackingProductionMaster;
@@ -66,48 +74,11 @@ class ProductionVoucher extends Command
 
             RawPackingMaster::where('status', '0')->where('raw_packing_id', $row->raw_packing_id)->update(['status' => '1']);
         }
-        $this->info('Updated on packing production');
+        $this->info('Updated on packing production test');
 
-        $this->sapHeader();
+        //$this->sapHeader();
 
-    }
-
-
-private function sapHeader()
-    {
-        $curl = curl_init();
-        $headers = [];
-        curl_setopt_array($curl, array(
-        CURLOPT_URL => 'http://gsdevapp:8000/sap/opu/odata/sap/ZCHECKWARE_UPDATE_1_SRV/Zcheckware_1Set?$format=json',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '', 
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => array(
-        'x-csrf-token: Fetch',
-        'Connection: keep-alive',
-        'Authorization: Basic UFdDQUJBUDphc2FwNEAxODA5',
-        'Cookie: sap-usercontext=sap-client=120'
-        ),
-        ));
-        curl_setopt(
-        $curl,
-        CURLOPT_HEADERFUNCTION,
-        function ($curl2, $header) use (&$headers) {
-        $len = strlen($header);
-        $header = explode(':', $header, 2);
-        if (count($header) <  2) // ignore invalid headers
-        return $len;
-
-        $headers[strtolower(trim($header[0]))] = trim($header[1]);
-        return $len;
-        }
-        );
-
-        curl_exec($curl);
-        return $headers;
+        $po= new PoController;
+        $po->pushPO();
     }
 }

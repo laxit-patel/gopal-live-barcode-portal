@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\BarcodeMachineMaster;
 use App\Models\LineMaster;
 use App\Models\PlantMaster;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+
 
 class BarcodeCtr extends Controller
 {
@@ -20,6 +22,11 @@ class BarcodeCtr extends Controller
     }
     public function save(Request $request)
     {
+        
+        // $path = "c:/barcode_reader/trigger.bat";
+        // popen($path, 'r');
+        // Log::debug('reader again started');
+        // dd('started');
         $request->validate([
             'ip_address' => 'unique:barcode_machine_masters,ip_address',
             'line_id' => 'unique:barcode_machine_masters,line_id',
@@ -36,6 +43,9 @@ class BarcodeCtr extends Controller
         $data->line_id = $request->line_id;
         $data->created_id = Session()->get('loggedData')['login_id'];
         $data->save();
+
+        
+
         return redirect()->route('barcode')->with('message', 'Successfully saved.');
     }
     public function delete($id)

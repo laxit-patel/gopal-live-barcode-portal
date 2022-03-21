@@ -38,6 +38,13 @@
                 <!--end::Breadcrumb-->
             </div>
             <!--end::Page title-->
+            <!--begin::Actions-->
+                <div class="d-flex align-items-center py-2">
+                    <!--begin::Button-->
+                    <a href="{{ route('dispatch') }}"  class="btn btn-primary" >Dispatch List</a>
+                    <!--end::Button-->
+                </div>
+                <!--end::Actions-->
         </div>
         <!--end::Container-->
     </div>
@@ -47,6 +54,7 @@
         <!--begin::Container-->
         <div id="kt_content_container" class="container-xxl">
             <!--begin::Row-->
+            @include('layouts.success_message')
 
             <!--begin::Card-->
             <div class="card shadow-lg card-flush pt-3 mb-5 mb-lg-10">
@@ -62,8 +70,14 @@
                     <!--begin::Toolbar-->
                     <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
                         <!--begin::Add user-->
-                        <a href="" type="button" class="btn btn-success btn-hover-scale">
+                        {{-- @if($pendingLineItems > 0) --}}
+                        <a href="{{ route('push.po.items',[
+                            'order' => @$OrderDetails->so_po_no,
+                            'plant' => @$OrderDetails->plant,
+                            'line' => @$OrderDetails->line_no,
+                            ]) }}" type="button" class="btn btn-success btn-hover-scale">
                         <i class="fa fa-check"></i> Completed</a>
+                        {{-- @endif --}}
                         <!--end::Add user-->
                     </div>
                     <!--end::Toolbar-->
@@ -126,21 +140,22 @@
                             <!--begin::Table body-->
                             <tbody id="displayData">
                                 @foreach ($lineItems as $k=>$item)
+                                <?php //echo '<pre>';print_r($item);exit;?>
                                 <tr>
                                     <td class="text-left ">{{$item->product_id }}</td>
                                     <td class="text-left ">{{$item->description }}</td>
                                     <td class="text-left ">{{$item->barcode }}</td>
                                     <td class="text-left ">{{$item->sales_voucher }}</td>
                                     <td class="text-center ">{{$item->qty }}</td>
-                                    <td class="text-center ">{{$item->countQty }}</td>
-                                    <td class="text-center ">{{ $item->pending }}</td>
+                                    <td class="text-center ">{{ ($item->read_qty) ? $item->read_qty : $item->countQty }}</td>
+                                    <td class="text-center ">{{ ($item->read_qty) ? ($item->qty - $item->read_qty) : $item->pending }}</td>
                                 </tr>
                                 @endforeach
                                 @if($nagative)
                                     @foreach ($nagative as $key => $row)
                                         
                                         <tr class="bg-light-danger">
-                                        <td class=' '>{{$row->product_id}}</td>
+                                        <td class=' '>{{$row->material_code}}</td>
                                         <td>{{$row->description}}</td>
                                         <td>{{$row->barcode}}</td>
                                         <td></td>
@@ -179,6 +194,7 @@
      var po = '{{ @$OrderDetails->so_po_no }}';
     
     $(document).ready(function() {
+        <?php if(@$lineItems[0]->status == 0 ){?>
         setInterval(function() {
                 $.ajax({
                     url: baseUrl + '/dispatch/get/pending/'+plant+'/'+line+'/'+po
@@ -195,7 +211,8 @@
 
                     }
                 })
-            }, 1000);
+            }, 500);
+            <?php }?>
         });
 </script>
 {{-- <script src="{{ url('/theme') }}/assets/js/custom/widgets.js"></script> --}}

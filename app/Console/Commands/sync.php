@@ -40,6 +40,8 @@ class sync extends Command
     public function handle()
     {
         $customers = DB::connection('dealer')->table('customers')->get();
+        // $products = DB::connection('dealer')->table('products')->get();
+        
         CustomerMaster::truncate();
 
         foreach($customers as $record)

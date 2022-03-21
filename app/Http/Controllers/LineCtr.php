@@ -12,7 +12,7 @@ class LineCtr extends Controller
     public function list()
     {
         $plantData = PlantMaster::orderby('plant_name')->get(['plant_id', 'plant_name']);
-        $lineData = LineMaster::join('plant_masters', 'plant_masters.plant_id', 'line_masters.plant_id')->orderby('line_name')->get(['line_masters.line_id', 'plant_masters.plant_name', 'line_masters.line_name', 'line_masters.created_at']);
+        $lineData = LineMaster::join('plant_masters', 'plant_masters.plant_id', 'line_masters.plant_id')->orderby('plant_masters.plant_id')->orderby('line_name')->get(['line_masters.line_id', 'plant_masters.plant_name', 'line_masters.line_name', 'line_masters.created_at']);
         return view('line.list', compact('lineData', 'plantData'));
     }
     public function save(Request $request)

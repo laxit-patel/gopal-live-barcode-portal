@@ -44,113 +44,125 @@ class DashboardCtr extends Controller
             $this->access($plant_id,$line_id); //check if user has access
 
             $machineData = BarcodeMachineMaster::where('plant_id', $plant_id)->where('line_id', $line_id)->first('type');
-            
+
             $pageType = $machineData->type;
             $display_type = $machineData->type;
             if ($machineData->type == 'dispatch') {
-                
+                $order_master = OrderMaster::join("plant_masters as pm", "pm.plant_name", "order_masters.plant")->
+                where('pm.plant_id', $plant_id)->where('line_no', $line_id)->where('status',0)->first();
+                $order = @$order_master->so_po_no;
                 $productData = DB::select("select dm.*, 
                 pm.plant_name, 
                 lm.line_name, 
                 (dm.qty - count(rd.barcode)) as pending, 
                 pms.description ,
+                rdm.created_at as dt,
                 count(rd.barcode) as countQty
-                from dispatch_masters as dm join plant_masters as pm on pm.plant_id = dm.plant_id
+                from dispatch_masters as dm 
+                join plant_masters as pm on pm.plant_id = dm.plant_id
                 join order_masters as om on om.so_po_no = dm.so_po_no
-                left join line_masters as lm on lm.plant_id = pm.plant_id
-                join product_masters as pms on pms.material_code = dm.product_id
-                left join raw_dispatch_masters as rd on rd.barcode = dm.barcode
-                where pm.plant_id = '{$plant_id}' and dm.line_id = '{$line_id}' group by dm.barcode");
+                left join line_masters as lm on lm.line_id = dm.line_id
+                left join product_masters as pms on pms.material_code = dm.product_id
+                left join raw_dispatch_masters as rd on (rd.barcode = dm.barcode and (rd.status = 0 or rd.status is null))
+                where pm.plant_id = '{$plant_id}'
+                and dm.line_id = '{$line_id}'
+                and dm.so_po_no = '{$order}'
+                group by dm.barcode, dm.product_id order by dt DESC;");
+               
 
-                $pending = DB::select("select 
-                rdm.*,
-                pl.plant_name, 
-                lm.line_name, 
-                ifnull((dm.qty - count(rdm.barcode)), 0) as pending, 
-                pm.description, 
-                count(*) as countQty,
-                ifnull(dm.qty, 0) as qty
-                from `raw_dispatch_masters` as rdm 
-                join plant_masters as pl on pl.plant_id = rdm.plant_id 
-                join line_masters as lm on lm.plant_id = rdm.plant_id 
-                join `product_masters` as pm on pm.material_code = `rdm`.`product_id` 
-                left join dispatch_masters as dm on dm.barcode = rdm.barcode 
-                where pl.plant_id = '{$plant_id}' 
-                and dm.barcode IS null 
-                and rdm.`line_id` = '{$line_id}'
-                group by rdm.barcode;");
-                
-                $order = $productData[0]->so_po_no;
-
-
+                if ($productData) {
+                    $pending = DB::select("select 
+                        rdm.*,
+                        pm.material_code,
+                        pl.plant_name, 
+                        lm.line_name, 
+                        0 as pending, 
+                        pm.description,
+                        rdm.created_at as dt,
+                        count(rdm.barcode) as countQty,
+                        0 as qty
+                        from `raw_dispatch_masters` as rdm 
+                        join plant_masters as pl on pl.plant_id = rdm.plant_id 
+                        join line_masters as lm on lm.line_id = rdm.line_id 
+                        left join `product_masters` as pm on pm.barcode = `rdm`.`barcode`
+                        where pl.plant_id = '{$plant_id}'
+                        and (rdm.status = 0 or rdm.status is null)
+                        and rdm.barcode not IN (select barcode from dispatch_masters where sales_voucher = '{$order}')
+                        and rdm.`line_id` = '{$line_id}'
+                        group by rdm.barcode, rdm.product_id order by dt DESC;");
+                }
                 $customer = DB::select("select * from order_masters as om 
                 join customer_master as cm 
-                on cm.customer_id = om.customer_id
+                on cm.customer_number = om.sold_to
                 where om.so_po_no = '{$order}'");
+                // dd($customer);
 
             } elseif ($machineData->type == 'packing') {
 
                 DB::enableQueryLog();
-                $productData = RawPackingMaster::join('product_masters', 'raw_packing_masters.product_id', 'product_masters.product_id')
+                $productData = RawPackingMaster::join('product_masters', 'raw_packing_masters.barcode', 'product_masters.barcode')
                     ->where('raw_packing_masters.plant_id',  $plant_id)
                     ->where('raw_packing_masters.line_id',  $line_id)
                     ->groupBy('raw_packing_masters.barcode')
                     ->orderby('dt', 'DESC')
                     ->get(['product_masters.*', DB::raw('count(*) as countQty, MAX(raw_packing_masters.created_at) as dt')]);
 
-                // dd($productData);
+                // dd(DB::getQueryLog());
             }
 
             // dd($productData);
             if ($ajax) {
+
                 if ($machineData->type == 'packing') {
 
                     $tr = '';
                     $th = "<thead>
-                <tr class='bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0'>
-                    <th class='text-center'>Product Code</th>
-                    <th >Product Name</th>
-                    <th >Barcode</th>
-                    <th class='text-center '>No. Of Boxes</th>
-                </tr>
-                </thead>";
+                        <tr class='bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0'>
+                            <th class='text-center'>Product Code</th>
+                            <th >Product Name</th>
+                            <th >Barcode</th>
+                            <th class='text-center '>No. Of Boxes</th>
+                        </tr>
+                        </thead>";
 
-
+                    $i = 0;
                     foreach ($productData as $key => $row) {
-                        $tr .= "<tr class='fs-2 text-gray-700 fw-bold '>
-                    <td class='text-center '>{$row->material_code}</td>
-                    <td>{$row->description}</td>
-                    <td>{$row->barcode}</td>
-                    <td class='text-center fw-boldest fs-2'>{$row->countQty}</td>
-                    </tr>";
+                        $new = ($i == 0) ? 'bg-light-warning' : '';
+                        $tr .= "<tr class='fs-2 text-gray-700 fw-bold {$new}'>
+                            <td class='text-center '>{$row->material_code}</td>
+                            <td>{$row->description}</td>
+                            <td>{$row->barcode}</td>
+                            <td class='text-center fw-boldest fs-2'>{$row->countQty}</td>
+                            </tr>";
+                        $i++;
                     }
-                    
+
 
                     return response()->json($th . $tr);
                 } elseif ($machineData->type == 'dispatch') {
 
-                    $customer_number = $customer[0]->customer_number;
-                    $customer_name = $customer[0]->name;
+                    $customer_number = @$customer[0]->customer_number;
+                    $customer_name = @$customer[0]->name;
 
                     $tr = '';
                     $th = "<thead >
-                    <tr class='bg-light-primary fs-2 text-start text-gray-800 fw-bolder fs-7 text-uppercase gs-0'>
-                    <td class='text-end'>Customer Name</td>
-                    <td colspan='' >{$customer_name}</td>
-                    <td></td>
-                    <td></td>
-                    <td class='text-end'>Customer Number</td>
-                    <td colspan='' >{$customer_number}</td>
-                    </tr>
-                    <tr class='bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0'>
-                        <th class='text-center'>Product Code</th>
-                        <th >Product Name</th>
-                        <th >Barcode</th>
-                        <th class='text-center '>SO. Qty</th>
-                        <th class='text-center '>Qty</th>
-                        <th class='text-center '>Pending</th>
-                    </tr>
-                    </thead>";
+                        <tr class='bg-light-primary fs-2 text-start text-gray-800 fw-bolder fs-7 text-uppercase gs-0'>
+                        <td class='text-end'>Customer Name</td>
+                        <td colspan='' >{$customer_name}</td>
+                        <td></td>
+                        <td></td>
+                        <td class='text-end'>Customer Number</td>
+                        <td colspan='' >{$customer_number}</td>
+                        </tr>
+                        <tr class='bg-light-primary fs-2 text-start text-gray-500 fw-bolder fs-7 text-uppercase gs-0'>
+                            <th class='text-center'>Product Code</th>
+                            <th >Product Name</th>
+                            <th >Barcode</th>
+                            <th class='text-center '>SO. Qty</th>
+                            <th class='text-center '>Qty</th>
+                            <th class='text-center '>Pending</th>
+                        </tr>
+                        </thead>";
 
 
                     foreach ($productData as $key => $row) {
@@ -166,9 +178,9 @@ class DashboardCtr extends Controller
 
                     if ($pending) {
                         foreach ($pending as $key => $row) {
-                            
-                            $tr .= "<tr class='fs-2 text-gray-700 fw-bold bg-light-danger'>
-                            <td class='text-center '>{$row->product_id}</td>
+
+                            $tr .= "<tr class='fs-2 text-gray-700 fw-bold bg-light-warning'>
+                            <td class='text-center '>{$row->material_code}</td>
                             <td>{$row->description}</td>
                             <td>{$row->barcode}</td>
                             <td class='text-center fw-boldest fs-2'>{$row->qty}</td>
@@ -188,8 +200,7 @@ class DashboardCtr extends Controller
         // return $productData;
         $plantData = PlantMaster::orderby('plant_name')->get(['plant_id', 'plant_name']);
         $lineData = LineMaster::orderby('line_name')->get(['line_id', 'plant_id', 'line_name']);
-
-        return view('rawDataList', compact('productData', 'plantData', 'lineData', 'pageType', 'display_choice', 'display_type', 'customer','pending'));
+        return view('rawDataList', compact('productData', 'plantData', 'lineData', 'pageType', 'display_choice', 'display_type', 'customer', 'pending'));
     }
 
 
@@ -214,8 +225,6 @@ class DashboardCtr extends Controller
                 'PLANT_CODE' => $row->plant_id
             ];
         }
-
-
         $header = [
             'Content-Type' => 'application/json',
             'SO_PO_NO' => '',
@@ -230,6 +239,7 @@ class DashboardCtr extends Controller
         return response($content)
             ->withHeaders($header);
     }
+
     public function getDispatchSave(Request $request)
     {
 
@@ -239,14 +249,9 @@ class DashboardCtr extends Controller
         $DISP_QTY = $request->DISP_QTY;
         $UOM = $request->UOM;
         $PLANT_CODE = $request->PLANT_CODE;
+        $plant = PlantMaster::where('plant_name', $request->PLANT)->first();
 
-        try {
-            //code...
-        } catch (\Throwable $th) {
-            //throw $th;
-        }
-
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request, $plant) {
 
             OrderMaster::create([
                 'so_po_no' => $request->SO_PO_NO,
@@ -258,35 +263,22 @@ class DashboardCtr extends Controller
                 'total' => $request->TOTAL_AMT
             ]);
 
-            foreach ($request->ITEM as $items) {
-                DispatchMaster::create([
-                    'so_po_no' => $request->SO_PO_NO,
-                    'sales_voucher' => $items['SO_NO'],
-                    'item_no' => $items['ITEM_NO'],
-                    'product_id' => $items['ITEM_CODE'],
-                    'qty' => $items['ORD_QTY'],
-                    'unit' => $items['UOM'],
-                    'barcode' => $items['BARCODE'],
-                    'plant_id' => $items['PLANT_CODE']
-                ]);
+            if ($request->ITEM) {
+                foreach ($request->ITEM as $items) {
+                    //echo $plant->plant_id;exit;
+                    DispatchMaster::create([
+                        'so_po_no' => $request->SO_PO_NO,
+                        'sales_voucher' => $items['SO_NO'],
+                        'item_no' => $items['ITEM_NO'],
+                        'plant_id' => \intval(@$plant->plant_id),
+                        'product_id' => $items['ITEM_CODE'],
+                        'qty' => $items['ORD_QTY'],
+                        'unit' => $items['UOM'],
+                        'barcode' => $items['BARCODE']
+                    ]);
+                }
             }
         });
-
-
-        
-        // $productData = ProductMaster::where('material_code', $ITEM_CODE)->first(['product_id', 'barcode']);
-        // $data = new DispatchMaster;
-        // $data->sales_voucher = $SO_PO_NO;
-        // // $data->product_id = $ITEM_NO;
-        // $data->product_id = $productData->product_id;
-        // $data->qty = $DISP_QTY;
-        // $data->unit = $UOM;
-        // $data->barcode = $productData->barcode;
-        // $data->plant_id = $PLANT_CODE;
-        // $data->line_id = 0;
-        // $data->save();
-
-
 
         $content = [
             'success' => true,

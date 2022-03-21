@@ -7,6 +7,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
 
+
 class Kernel extends ConsoleKernel
 {
     /**
@@ -33,6 +34,7 @@ class Kernel extends ConsoleKernel
         $productionVoucher = $ConfigData->productionVoucher;
         if ($productionVoucher != 'Off' && !empty($productionVoucher)) {
             $schedule->command('Production:Voucher')->$productionVoucher();
+            Log::debug('Voucher_test');
         }
 
         $schedule->command('db:sync')->daily();
